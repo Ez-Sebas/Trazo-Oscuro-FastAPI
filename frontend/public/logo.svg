@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+
+    <style>
+        .logo {
+            stroke: #0A0A0A;
+        }
+
+        .punto {
+            fill: #B91C1C;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .logo {
+                stroke: #F5F5F4;
+            }
+
+            .punto {
+                fill: #B91C1C;
+            }
+        }
+    </style>
+
+    <path
+        class="logo"
+        d="M 10 15 L 50 15 M 30 15 L 30 45 L 15 55"
+        fill="none"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    />
+
+    <circle
+        class="punto"
+        cx="15"
+        cy="55"
+        r="3"
+    />
+
+</svg>
