@@ -11,10 +11,14 @@ export const CartDrawer = ({ abierto, onCerrar }) => {
     const [procesando, setProcesando] = useState(false)
     const [error, setError] = useState('')
 
+    const irALogin = () => {
+        onCerrar()
+        navigate('/login')
+    }
+
     const finalizarCompra = async () => {
         if (!usuario) {
-            onCerrar()
-            navigate('/login')
+            irALogin()
             return
         }
 
@@ -47,7 +51,19 @@ export const CartDrawer = ({ abierto, onCerrar }) => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {items.length === 0 ? (
+                    {!usuario ? (
+                        <div className="text-center mt-10">
+                            <p className="text-texto-secundario text-sm mb-4">
+                                Inicia sesión para ver y gestionar tu carrito.
+                            </p>
+                            <button
+                                onClick={irALogin}
+                                className="bg-acento text-texto text-sm px-4 py-2 rounded-md hover:bg-red-800 transition-colors cursor-pointer"
+                            >
+                                Iniciar sesión
+                            </button>
+                        </div>
+                    ) : items.length === 0 ? (
                         <p className="text-texto-secundario text-sm text-center mt-10">Tu carrito está vacío.</p>
                     ) : (
                         <div className="flex flex-col gap-4">
@@ -87,7 +103,7 @@ export const CartDrawer = ({ abierto, onCerrar }) => {
                     )}
                 </div>
 
-                {items.length > 0 && (
+                {usuario && items.length > 0 && (
                     <div className="px-6 py-5 border-t border-borde">
                         <div className="flex justify-between mb-4">
                             <span className="text-texto-secundario text-sm">Total</span>
@@ -101,7 +117,7 @@ export const CartDrawer = ({ abierto, onCerrar }) => {
                             disabled={procesando}
                             className="w-full bg-acento text-texto py-3 rounded-md hover:bg-red-800 transition-colors disabled:opacity-50 cursor-pointer"
                         >
-                            {procesando ? 'Procesando...' : usuario ? 'Finalizar compra' : 'Inicia sesión para comprar'}
+                            {procesando ? 'Procesando...' : 'Finalizar compra'}
                         </button>
                     </div>
                 )}

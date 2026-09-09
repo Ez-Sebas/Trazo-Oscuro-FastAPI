@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { obtenerProductosActivos } from '../services/productoService.js'
 import { useCart } from '../context/CartContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 export const Productos = () => {
     const [productos, setProductos] = useState([])
     const [cargando, setCargando] = useState(true)
     const [agregado, setAgregado] = useState(null)
     const { agregarProducto } = useCart()
+    const { usuario } = useAuth()
+    const navigate = useNavigate()
 
     useEffect(() => {
         obtenerProductosActivos()
@@ -15,6 +19,10 @@ export const Productos = () => {
     }, [])
 
     const manejarAgregar = (producto) => {
+        if (!usuario) {
+            navigate('/login')
+            return
+        }
         agregarProducto(producto, 1)
         setAgregado(producto.id_producto)
         setTimeout(() => setAgregado(null), 1200)
@@ -27,6 +35,14 @@ export const Productos = () => {
                     <h1 className="text-texto font-serif text-4xl mb-3">Productos</h1>
                     <p className="text-texto-secundario">Cuidado profesional para tu tatuaje y mercancía del estudio</p>
                 </div>
+
+                {!usuario && (
+                    <div className="bg-superficie border border-borde rounded-lg p-4 mb-8 text-center">
+                        <p className="text-texto-secundario text-sm">
+                            Inicia sesión para agregar productos a tu carrito y realizar una compra.
+                        </p>
+                    </div>
+                )}
 
                 {cargando && <p className="text-texto-secundario text-center">Cargando productos...</p>}
 
@@ -53,7 +69,11 @@ export const Productos = () => {
                                         onClick={() => manejarAgregar(p)}
                                         className="bg-acento text-texto text-sm px-4 py-2 rounded-md hover:bg-red-800 transition-colors cursor-pointer"
                                     >
-                                        {agregado === p.id_producto ? 'Agregado ✓' : 'Agregar al carrito'}
+                                        {!usuario
+                                            ? 'Inicia sesión para comprar'
+                                            : agregado === p.id_producto
+                                                ? 'Agregado ✓'
+                                                : 'Agregar al carrito'}
                                     </button>
                                 </div>
                             </div>

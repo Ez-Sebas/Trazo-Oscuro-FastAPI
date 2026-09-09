@@ -5,6 +5,7 @@ const enlacesEmpleado = [
     { to: '/empleado', texto: 'Mis Citas', icono: '📅' },
     { to: '/empleado/servicios', texto: 'Servicios', icono: '💈' },
     { to: '/empleado/productos', texto: 'Productos', icono: '📦' },
+    { to: '/empleado/perfil', texto: 'Mi Perfil', icono: '👤' },
 ]
 
 export const EmpleadoLayout = () => {

@@ -1,6 +1,7 @@
 import { apiFetch } from './api.js'
 
 export const obtenerUsuarios = () => apiFetch('/usuarios')
+export const obtenerEmpleado = () => apiFetch('/usuarios/empleados')
 export const obtenerUsuario = (id) => apiFetch(`/usuarios/${id}`)
 export const crearUsuarioAdmin = (datos) => apiFetch('/usuarios', { method: 'POST', body: JSON.stringify(datos) })
 export const actualizarUsuario = (id, datos) => apiFetch(`/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(datos) })

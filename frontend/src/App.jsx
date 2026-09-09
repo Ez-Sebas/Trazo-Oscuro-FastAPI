@@ -8,6 +8,7 @@ import { Reservas } from './pages/Reservas.jsx'
 import { Productos } from './pages/Productos.jsx'
 import { Servicios } from './pages/Servicios.jsx'
 import { Login } from './pages/Login.jsx'
+import { RestablecerPassword } from './pages/RestablecerPassword.jsx'
 import { ClientePanel } from './pages/ClientePanel.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 
@@ -16,10 +17,12 @@ import { ProductosPage as AdminProductosPage } from './pages/admin/ProductosPage
 import { ServiciosPage as AdminServiciosPage } from './pages/admin/ServiciosPage.jsx'
 import { CitasPage } from './pages/admin/CitasPage.jsx'
 import { ComprasPage } from './pages/admin/ComprasPage.jsx'
+import { MiPerfilAdmin } from './pages/admin/MiPerfilAdmin.jsx'
 
 import { MisCitasPage } from './pages/empleado/MisCitasPage.jsx'
 import { ServiciosPage as EmpleadoServiciosPage } from './pages/empleado/ServiciosPage.jsx'
 import { ProductosPage as EmpleadoProductosPage } from './pages/empleado/ProductosPage.jsx'
+import { MiPerfilPage } from './pages/empleado/MiPerfilPage.jsx'
 
 function App() {
     return (
@@ -52,6 +55,7 @@ function App() {
                 <Route path="/admin/servicios" element={<AdminServiciosPage />} />
                 <Route path="/admin/citas" element={<CitasPage />} />
                 <Route path="/admin/compras" element={<ComprasPage />} />
+                <Route path="/admin/perfil" element={<MiPerfilAdmin />} />
             </Route>
 
             <Route
@@ -64,9 +68,11 @@ function App() {
                 <Route path="/empleado" element={<MisCitasPage />} />
                 <Route path="/empleado/servicios" element={<EmpleadoServiciosPage />} />
                 <Route path="/empleado/productos" element={<EmpleadoProductosPage />} />
+                <Route path="/empleado/perfil" element={<MiPerfilPage />} />
             </Route>
 
             <Route path="/login" element={<Login />} />
+            <Route path="/restablecer-password" element={<RestablecerPassword />} />
         </Routes>
     )
 }

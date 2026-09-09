@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Input } from './ui/Input.jsx'
 import { Button } from './ui/Button.jsx'
+import { solicitarRecuperacion } from '../services/authService.js'
 
 export const RecoverPassword = ({ onVolver }) => {
     const [correo, setCorreo] = useState('')
     const [error, setError] = useState('')
+    const [enviando, setEnviando] = useState(false)
     const [enviado, setEnviado] = useState(false)
 
     const validarCorreo = (valor) => {
@@ -25,13 +27,21 @@ export const RecoverPassword = ({ onVolver }) => {
         setError(validarCorreo(valor))
     }
 
-    const manejarEnvio = (e) => {
+    const manejarEnvio = async (e) => {
         e.preventDefault()
         const mensajeError = validarCorreo(correo)
         setError(mensajeError)
 
-        if (!mensajeError) {
+        if (mensajeError) return
+
+        setEnviando(true)
+        try {
+            await solicitarRecuperacion(correo)
             setEnviado(true)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setEnviando(false)
         }
     }
 
@@ -59,15 +69,15 @@ export const RecoverPassword = ({ onVolver }) => {
                             maxLength={50}
                         />
 
-                        <Button type="submit" fullWidth>
-                            Recuperar contraseña
+                        <Button type="submit" fullWidth disabled={enviando}>
+                            {enviando ? 'Enviando...' : 'Recuperar contraseña'}
                         </Button>
                     </form>
                 </>
             ) : (
                 <p className="text-texto-secundario text-sm text-center mb-6">
                     Si el correo <span className="text-texto">{correo}</span> está registrado, recibirás
-                    un enlace para restablecer tu contraseña en unos minutos.
+                    un enlace para restablecer tu contraseña en unos minutos. Revisa también tu carpeta de spam.
                 </p>
             )}
 

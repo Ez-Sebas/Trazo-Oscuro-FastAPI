@@ -5,7 +5,7 @@ from typing import Optional
 import bcrypt
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from .database import get_db
@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 480))
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
+security_scheme = HTTPBearer(auto_error=False)
 
 
 # ============================
@@ -23,10 +23,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
 # ============================
 
 def hash_password(password: str) -> str:
-    """
-    Genera un hash seguro de la contraseña.
-    bcrypt trabaja con un máximo de 72 bytes.
-    """
     password_bytes = password.encode("utf-8")
     if len(password_bytes) > 72:
         raise ValueError("La contraseña no puede superar los 72 caracteres.")
@@ -54,7 +50,6 @@ def crear_access_token(data: dict) -> str:
 
 
 def crear_token_recuperacion(email: str) -> str:
-    """Token de corta duración, solo para el flujo de recuperar contraseña."""
     to_encode = {"sub": email, "tipo": "recuperacion"}
     expira = datetime.utcnow() + timedelta(minutes=30)
     to_encode.update({"exp": expira})
@@ -76,7 +71,7 @@ def verificar_token_recuperacion(token: str) -> str:
 # ============================
 
 def obtener_usuario_actual(
-    token: Optional[str] = Depends(oauth2_scheme),
+    credenciales: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
     db: Session = Depends(get_db),
 ) -> Usuario:
     credenciales_invalidas = HTTPException(
@@ -84,8 +79,10 @@ def obtener_usuario_actual(
         detail="No se pudo validar la sesión. Inicia sesión nuevamente.",
     )
 
-    if token is None:
+    if credenciales is None:
         raise credenciales_invalidas
+
+    token = credenciales.credentials
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -109,11 +106,6 @@ def obtener_usuario_actual(
 
 
 def requerir_roles(*roles_permitidos: str):
-    """
-    Uso: Depends(requerir_roles("Administrador"))
-    Uso: Depends(requerir_roles("Administrador", "Empleado"))
-    """
-
     def verificador(usuario: Usuario = Depends(obtener_usuario_actual)) -> Usuario:
         if usuario.rol.nombre not in roles_permitidos:
             raise HTTPException(

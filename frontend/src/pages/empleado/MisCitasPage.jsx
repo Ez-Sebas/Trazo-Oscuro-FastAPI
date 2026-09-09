@@ -61,6 +61,7 @@ export const MisCitasPage = () => {
                             <h3 className="text-texto font-medium">{c.servicio_nombre}</h3>
                             <p className="text-texto-secundario text-sm">Cliente: {c.cliente_nombre}</p>
                             <p className="text-texto-secundario text-sm mb-2">{c.fecha}</p>
+                            <p className="text-texto-secundario text-sm mb-2">{c.hora}</p>
                             <select
                                 value={c.estado}
                                 onChange={(e) => cambiarEstado(c.id_cita, e.target.value)}

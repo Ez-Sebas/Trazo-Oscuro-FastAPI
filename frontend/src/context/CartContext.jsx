@@ -1,18 +1,38 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext.jsx'
 
 const CartContext = createContext()
 
-export const CartProvider = ({ children }) => {
-    const [items, setItems] = useState(() => {
-        const guardado = localStorage.getItem('trazo_carrito')
-        return guardado ? JSON.parse(guardado) : []
-    })
+const claveCarrito = (idUsuario) => `trazo_carrito_${idUsuario}`
 
+export const CartProvider = ({ children }) => {
+    const { usuario } = useAuth()
+    const [items, setItems] = useState([])
+
+    // Limpieza de una versión antigua del carrito (compartida entre usuarios)
     useEffect(() => {
-        localStorage.setItem('trazo_carrito', JSON.stringify(items))
-    }, [items])
+        localStorage.removeItem('trazo_carrito')
+    }, [])
+
+    // Cada vez que cambia el usuario (login/logout), carga SU carrito guardado
+    useEffect(() => {
+        if (!usuario) {
+            setItems([])
+            return
+        }
+        const guardado = localStorage.getItem(claveCarrito(usuario.id))
+        setItems(guardado ? JSON.parse(guardado) : [])
+    }, [usuario])
+
+    // Guarda el carrito, pero solo si hay una sesión activa
+    useEffect(() => {
+        if (!usuario) return
+        localStorage.setItem(claveCarrito(usuario.id), JSON.stringify(items))
+    }, [items, usuario])
 
     const agregarProducto = (producto, cantidad = 1) => {
+        if (!usuario) return
+
         setItems((prev) => {
             const existente = prev.find((item) => item.id_producto === producto.id_producto)
             if (existente) {
@@ -37,7 +57,12 @@ export const CartProvider = ({ children }) => {
         setItems((prev) => prev.filter((item) => item.id_producto !== id_producto))
     }
 
-    const vaciarCarrito = () => setItems([])
+    const vaciarCarrito = () => {
+        setItems([])
+        if (usuario) {
+            localStorage.removeItem(claveCarrito(usuario.id))
+        }
+    }
 
     const total = items.reduce((suma, item) => suma + Number(item.precio) * item.cantidad, 0)
     const cantidadTotal = items.reduce((suma, item) => suma + item.cantidad, 0)

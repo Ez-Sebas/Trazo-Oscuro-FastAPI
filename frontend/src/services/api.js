@@ -1,4 +1,14 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
+
+const extraerMensajeError = (data) => {
+    if (typeof data.detail === 'string') return data.detail
+
+    if (Array.isArray(data.detail)) {
+        return data.detail.map((error) => error.msg).join(' ')
+    }
+
+    return data.message || 'Error en la solicitud.'
+}
 
 export const apiFetch = async (endpoint, options = {}) => {
 
@@ -25,7 +35,7 @@ export const apiFetch = async (endpoint, options = {}) => {
     const data = await response.json()
 
     if (!response.ok) {
-        throw new Error(data.message || 'Error en la solicitud.')
+        throw new Error(extraerMensajeError(data))
     }
 
     return data

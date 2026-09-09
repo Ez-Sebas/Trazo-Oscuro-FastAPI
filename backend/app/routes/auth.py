@@ -16,7 +16,7 @@ from ..auth import (
     crear_token_recuperacion,
     verificar_token_recuperacion,
 )
-from ..email_utils import enviar_correo_recuperacion
+from ..email_utils import enviar_correo_recuperacion, construir_enlace_recuperacion
 
 from datetime import datetime
 
@@ -86,15 +86,16 @@ def solicitar_recuperacion(
         "message": "Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.",
     }
 
-    # Por seguridad, siempre devolvemos el mismo mensaje exista o no la cuenta,
-    # para no revelar qué correos están registrados en el sistema.
-    if not usuario:
-        return respuesta_generica
-
-    if usuario.estado == "inactivo":
+    if not usuario or usuario.estado == "inactivo":
         return respuesta_generica
 
     token = crear_token_recuperacion(usuario.email)
+
+    # Se registra en la consola del servidor para poder probar el flujo
+    # aunque el envío real de correo falle momentáneamente. Nunca se expone
+    # este enlace en la respuesta al frontend, solo queda en el log local.
+    print(f"[EMAIL] Enlace de recuperación para {usuario.email}: {construir_enlace_recuperacion(token)}")
+
     enviado = enviar_correo_recuperacion(usuario.email, token)
 
     if not enviado:

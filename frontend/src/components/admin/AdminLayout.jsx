@@ -7,6 +7,7 @@ const enlacesAdmin = [
     { to: '/admin/servicios', texto: 'Servicios', icono: '💈' },
     { to: '/admin/citas', texto: 'Citas', icono: '📅' },
     { to: '/admin/compras', texto: 'Compras', icono: '🛒' },
+    { to: '/admin/perfil', texto: 'Mi Perfil', icono: '👤' },
 ]
 
 export const AdminLayout = () => {

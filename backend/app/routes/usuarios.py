@@ -98,7 +98,7 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
 # PERFIL PROPIO (cualquier usuario autenticado)
 # ============================
 
-@router.get("/perfil/me", response_model=UsuarioConRol)
+@router.get("/perfil/me")
 def obtener_mi_perfil(
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
@@ -109,10 +109,10 @@ def obtener_mi_perfil(
         .filter(Usuario.id_usuario == usuario_actual.id_usuario)
         .first()
     )
-    return _con_rol(usuario)
+    return {"success": True, "usuario": _con_rol(usuario)}
 
 
-@router.put("/perfil/me", response_model=UsuarioConRol)
+@router.put("/perfil/me")
 def actualizar_mi_perfil(
     datos: UsuarioPerfilUpdate,
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
@@ -170,7 +170,7 @@ def actualizar_mi_perfil(
     db.commit()
     db.refresh(usuario)
 
-    return _con_rol(usuario)
+    return {"success": True, "usuario": _con_rol(usuario)}
 
 
 # ============================
@@ -186,6 +186,23 @@ def listar_usuarios(db: Session = Depends(get_db)):
         .all()
     )
     return {"success": True, "usuarios": [_con_rol(u) for u in usuarios]}
+
+
+@router.get("/empleados")
+def listar_empleados(db: Session = Depends(get_db)):
+    empleados = (
+        db.query(Usuario)
+        .join(Rol, Usuario.id_rol == Rol.id_rol)
+        .options(joinedload(Usuario.rol))
+        .filter(Rol.nombre == "Empleado")
+        .order_by(Usuario.id_usuario.desc())
+        .all()
+    )
+
+    return {
+        "success": True,
+        "empleados": [_con_rol(empleado) for empleado in empleados]
+    }
 
 
 @router.get("/{id_usuario}", dependencies=[Depends(requerir_roles("Administrador"))])

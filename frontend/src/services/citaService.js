@@ -17,3 +17,9 @@ export const actualizarEstadoCita = (id_cita, estado) =>
     apiFetch(`/citas/${id_cita}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) })
 
 export const eliminarCita = (id_cita) => apiFetch(`/citas/${id_cita}`, { method: 'DELETE' })
+
+export const asignarEmpleado = (id_cita, id_empleado) =>
+    apiFetch(`/citas/${id_cita}/asignar-empleado`, {
+        method: 'PATCH',
+        body: JSON.stringify({ id_empleado }),
+    })

@@ -153,3 +153,35 @@ class ServicioResponse(ServicioBase):
     fecha_creacion: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+    
+
+# ============================
+# CITA
+# ============================
+
+class CitaEstadoUpdate(BaseModel):
+    estado: str = Field(pattern="^(pendiente|confirmada|realizada|cancelada)$")
+
+
+class CitaAsignarEmpleado(BaseModel):
+    id_empleado: int
+    
+
+# ============================
+# COMPRA
+# ============================
+
+class ItemCompra(BaseModel):
+    id_producto: int
+    nombre: str
+    precio: float
+    cantidad: int = Field(gt=0)
+
+
+class CompraCreate(BaseModel):
+    items: List[ItemCompra]
+    total: float = Field(gt=0)
+
+
+class CompraEstadoUpdate(BaseModel):
+    estado: str = Field(pattern="^(pendiente|pagada|entregada|cancelada)$")
