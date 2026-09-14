@@ -1,42 +1,105 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { obtenerServiciosActivos } from '../services/servicioService.js'
+import { obtenerServiciosActivos, obtenerCategoriasServicio } from '../services/servicioService.js'
+import { ImageBox } from '../components/ui/ImageBox.jsx'
 
 export const Servicios = () => {
     const [servicios, setServicios] = useState([])
+    const [categorias, setCategorias] = useState([])
     const [cargando, setCargando] = useState(true)
 
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroCategoria, setFiltroCategoria] = useState('')
+    const [precioMin, setPrecioMin] = useState('')
+    const [precioMax, setPrecioMax] = useState('')
+
     useEffect(() => {
-        obtenerServiciosActivos()
-            .then((data) => setServicios(data.servicios))
-            .finally(() => setCargando(false))
+        obtenerCategoriasServicio().then((d) => setCategorias(d.categorias))
     }, [])
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCargando(true)
+            obtenerServiciosActivos({
+                busqueda,
+                id_categoria_servicio: filtroCategoria,
+                precio_min: precioMin,
+                precio_max: precioMax,
+            })
+                .then((data) => setServicios(data.servicios))
+                .finally(() => setCargando(false))
+        }, 350)
+        return () => clearTimeout(timer)
+    }, [busqueda, filtroCategoria, precioMin, precioMax])
+
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setFiltroCategoria('')
+        setPrecioMin('')
+        setPrecioMax('')
+    }
 
     return (
         <div className="bg-fondo min-h-screen pt-28 pb-20 px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-12">
+                <div className="text-center mb-10">
                     <h1 className="text-texto font-serif text-4xl mb-3">Servicios</h1>
                     <p className="text-texto-secundario">Estilos de tatuaje disponibles en Trazo Oscuro</p>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mb-10 justify-center">
+                    <input
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        placeholder="Buscar servicio..."
+                        className="flex-1 min-w-200px max-w-xs bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm focus:outline-none focus:border-acento"
+                    />
+                    <select
+                        value={filtroCategoria}
+                        onChange={(e) => setFiltroCategoria(e.target.value)}
+                        className="bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    >
+                        <option value="">Todas las categorías</option>
+                        {categorias.map((c) => (
+                            <option key={c.id_categoria_servicio} value={c.id_categoria_servicio}>{c.nombre}</option>
+                        ))}
+                    </select>
+                    <input
+                        type="number"
+                        value={precioMin}
+                        onChange={(e) => setPrecioMin(e.target.value)}
+                        placeholder="Precio mín."
+                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    />
+                    <input
+                        type="number"
+                        value={precioMax}
+                        onChange={(e) => setPrecioMax(e.target.value)}
+                        placeholder="Precio máx."
+                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    />
+                    {(busqueda || filtroCategoria || precioMin || precioMax) && (
+                        <button
+                            onClick={limpiarFiltros}
+                            className="text-acento text-sm hover:underline cursor-pointer"
+                        >
+                            Limpiar filtros
+                        </button>
+                    )}
                 </div>
 
                 {cargando && <p className="text-texto-secundario text-center">Cargando servicios...</p>}
 
                 {!cargando && servicios.length === 0 && (
-                    <p className="text-texto-secundario text-center">No hay servicios disponibles por el momento.</p>
+                    <p className="text-texto-secundario text-center">No se encontraron servicios con esos filtros.</p>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {servicios.map((s) => (
                         <div key={s.id_servicio} className="bg-superficie rounded-lg overflow-hidden flex flex-col">
-                            <div className="h-48 bg-fondo">
-                                {s.imagen_url ? (
-                                    <img src={s.imagen_url} alt={s.nombre} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-texto-secundario text-sm">Sin imagen</div>
-                                )}
-                            </div>
+                            <ImageBox src={s.imagen_url} alt={s.nombre} />
                             <div className="p-5 flex flex-col flex-1">
+                                <span className="text-texto-secundario text-xs uppercase tracking-wide mb-1">{s.categoria}</span>
                                 <h3 className="text-texto font-serif text-lg mb-2">{s.nombre}</h3>
                                 <p className="text-texto-secundario text-sm mb-3 flex-1">{s.descripcion}</p>
                                 <p className="text-acento font-medium">${Number(s.precio).toLocaleString('es-CO')}</p>

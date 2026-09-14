@@ -29,13 +29,13 @@ export const RegisterModal = ({ abierto, onCerrar }) => {
         const regexSoloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/
         const regexSoloNumeros = /^[0-9]+$/
         const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        const regexContrasena = /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/
+        const regexContrasena = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/
 
         switch (nombre) {
             case 'nombre':
             case 'apellido':
                 if (!valor) return 'Este campo es obligatorio.'
-                if (valor.length < 2 || valor.length > 30) return 'Debe tener entre 2 y 30 caracteres.'
+                if (valor.length < 2 || valor.length > 50) return 'Debe tener entre 2 y 50 caracteres.'
                 if (!regexSoloLetras.test(valor)) return 'Solo se permiten letras.'
                 return ''
             case 'tipoDocumento':
@@ -48,11 +48,11 @@ export const RegisterModal = ({ abierto, onCerrar }) => {
                 return ''
             case 'direccion':
                 if (!valor) return 'La dirección es obligatoria.'
-                if (valor.length < 5 || valor.length > 60) return 'Debe tener entre 5 y 60 caracteres.'
+                if (valor.length < 5 || valor.length > 100) return 'Debe tener entre 5 y 60 caracteres.'
                 return ''
             case 'telefono':
                 if (!valor) return 'El teléfono es obligatorio.'
-                if (!/^[0-9]{7,10}$/.test(valor)) return 'Debe tener entre 7 y 10 dígitos numéricos.'
+                if (!/^[0-9]{7,15}$/.test(valor)) return 'Debe tener entre 7 y 15 dígitos numéricos.'
                 return ''
             case 'correo':
                 if (!valor) return 'El correo es obligatorio.'
@@ -60,7 +60,7 @@ export const RegisterModal = ({ abierto, onCerrar }) => {
                 return ''
             case 'contrasena':
                 if (!valor) return 'La contraseña es obligatoria.'
-                if (!regexContrasena.test(valor)) return 'Debe tener 8-20 caracteres, con letras y números.'
+                if (!regexContrasena.test(valor)) return 'Debe tener 8-72 caracteres, con letras y números.'
                 return ''
             case 'confirmarContrasena':
                 if (!valor) return 'Confirma tu contraseña.'

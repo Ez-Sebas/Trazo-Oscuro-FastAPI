@@ -23,9 +23,9 @@ def enviar_correo_recuperacion(destinatario: str, token: str) -> bool:
         <p>Recibimos una solicitud para restablecer tu contraseña.</p>
         <p>Haz clic en el siguiente botón para continuar (el enlace es válido por 30 minutos):</p>
         <a href="{enlace}"
-           style="display:inline-block;background:#B91C1C;color:#ffffff;
-                  padding:12px 24px;border-radius:6px;text-decoration:none;margin:16px 0;">
-           Restablecer contraseña
+            style="display:inline-block;background:#B91C1C;color:#ffffff;
+                padding:12px 24px;border-radius:6px;text-decoration:none;margin:16px 0;">
+            Restablecer contraseña
         </a>
         <p style="color:#64748B;font-size:13px;">
             Si tú no solicitaste este cambio, puedes ignorar este correo con tranquilidad.

@@ -96,6 +96,7 @@ class RestablecerPassword(BaseModel):
 # ============================
 
 class ProductoBase(BaseModel):
+    id_categoria_producto: int
     nombre: str = Field(min_length=2, max_length=60)
     descripcion: str = Field(min_length=5, max_length=255)
     precio: float = Field(gt=0)
@@ -115,8 +116,15 @@ class ProductoEstadoUpdate(BaseModel):
     estado: str = Field(pattern="^(activo|inactivo)$")
 
 
-class ProductoResponse(ProductoBase):
+class ProductoResponse(BaseModel):
     id_producto: int
+    id_categoria_producto: int
+    categoria: Optional[str] = None
+    nombre: str
+    descripcion: str
+    precio: float
+    stock: int
+    imagen_url: Optional[str] = None
     estado: str
     fecha_creacion: Optional[datetime] = None
 
@@ -128,6 +136,7 @@ class ProductoResponse(ProductoBase):
 # ============================
 
 class ServicioBase(BaseModel):
+    id_categoria_servicio: int
     nombre: str = Field(min_length=2, max_length=60)
     descripcion: str = Field(min_length=5, max_length=255)
     precio: float = Field(gt=0)
@@ -147,13 +156,19 @@ class ServicioEstadoUpdate(BaseModel):
     estado: str = Field(pattern="^(activo|inactivo)$")
 
 
-class ServicioResponse(ServicioBase):
+class ServicioResponse(BaseModel):
     id_servicio: int
+    id_categoria_servicio: int
+    categoria: Optional[str] = None
+    nombre: str
+    descripcion: str
+    precio: float
+    duracion_estimada: str
+    imagen_url: Optional[str] = None
     estado: str
     fecha_creacion: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
-    
 
 # ============================
 # CITA

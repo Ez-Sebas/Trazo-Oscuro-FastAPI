@@ -33,7 +33,8 @@ def _con_rol(usuario: Usuario) -> dict:
 # ============================
 
 @router.post("/registro", response_model=UsuarioResponse, status_code=201)
-def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)
+):
 
     if not REGEX_SOLO_NUMEROS.match(usuario.numero_documento):
         raise HTTPException(
@@ -178,7 +179,8 @@ def actualizar_mi_perfil(
 # ============================
 
 @router.get("", dependencies=[Depends(requerir_roles("Administrador"))])
-def listar_usuarios(db: Session = Depends(get_db)):
+def listar_usuarios(db: Session = Depends(get_db)
+):
     usuarios = (
         db.query(Usuario)
         .options(joinedload(Usuario.rol))
@@ -187,26 +189,26 @@ def listar_usuarios(db: Session = Depends(get_db)):
     )
     return {"success": True, "usuarios": [_con_rol(u) for u in usuarios]}
 
-
-@router.get("/empleados")
-def listar_empleados(db: Session = Depends(get_db)):
+@router.get("/empleados/activos", dependencies=[Depends(requerir_roles("Administrador"))])
+def listar_empleados_activos(db: Session = Depends(get_db)
+):
     empleados = (
         db.query(Usuario)
-        .join(Rol, Usuario.id_rol == Rol.id_rol)
-        .options(joinedload(Usuario.rol))
-        .filter(Rol.nombre == "Empleado")
-        .order_by(Usuario.id_usuario.desc())
+        .join(Usuario.rol)
+        .filter(Rol.nombre == "Empleado", Usuario.estado == "activo")
         .all()
     )
-
     return {
         "success": True,
-        "empleados": [_con_rol(empleado) for empleado in empleados]
+        "empleados": [
+            {"id_usuario": e.id_usuario, "nombre_completo": f"{e.nombres} {e.apellidos}"}
+            for e in empleados
+        ],
     }
 
-
 @router.get("/{id_usuario}", dependencies=[Depends(requerir_roles("Administrador"))])
-def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)):
+def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)
+):
     usuario = (
         db.query(Usuario)
         .options(joinedload(Usuario.rol))
@@ -221,7 +223,8 @@ def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)):
 @router.post(
     "", status_code=201, dependencies=[Depends(requerir_roles("Administrador"))]
 )
-def crear_usuario_admin(datos: UsuarioAdminCreate, db: Session = Depends(get_db)):
+def crear_usuario_admin(datos: UsuarioAdminCreate, db: Session = Depends(get_db)
+):
     if not REGEX_SOLO_NUMEROS.match(datos.numero_documento):
         raise HTTPException(
             status_code=400, detail="El documento solo puede contener números."
@@ -272,7 +275,8 @@ def crear_usuario_admin(datos: UsuarioAdminCreate, db: Session = Depends(get_db)
 
 
 @router.put("/{id_usuario}", dependencies=[Depends(requerir_roles("Administrador"))])
-def editar_usuario(id_usuario: int, datos: UsuarioUpdate, db: Session = Depends(get_db)):
+def editar_usuario(id_usuario: int, datos: UsuarioUpdate, db: Session = Depends(get_db)
+):
     if not REGEX_SOLO_NUMEROS.match(datos.numero_documento):
         raise HTTPException(
             status_code=400, detail="El documento solo puede contener números."
@@ -339,7 +343,8 @@ def cambiar_rol_usuario(
 
 
 @router.delete("/{id_usuario}", dependencies=[Depends(requerir_roles("Administrador"))])
-def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
+def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)
+):
     usuario = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado.")

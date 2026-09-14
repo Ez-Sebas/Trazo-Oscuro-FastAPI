@@ -58,10 +58,29 @@ class Usuario(Base):
     rol = relationship("Rol", back_populates="usuarios")
 
 
+class CategoriaProducto(Base):
+    __tablename__ = "categorias_producto"
+
+    id_categoria_producto = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nombre = Column(String(50), unique=True, nullable=False)
+
+    productos = relationship("Producto", back_populates="categoria")
+
+
+class CategoriaServicio(Base):
+    __tablename__ = "categorias_servicio"
+
+    id_categoria_servicio = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nombre = Column(String(50), unique=True, nullable=False)
+
+    servicios = relationship("Servicio", back_populates="categoria")
+
+
 class Producto(Base):
     __tablename__ = "productos"
 
     id_producto = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_categoria_producto = Column(Integer, ForeignKey("categorias_producto.id_categoria_producto"), nullable=False)
     nombre = Column(String(60), nullable=False)
     descripcion = Column(String(255), nullable=True)
     precio = Column(DECIMAL(10, 2), nullable=False)
@@ -70,11 +89,14 @@ class Producto(Base):
     estado = Column(Enum("activo", "inactivo"), default="activo", nullable=False)
     fecha_creacion = Column(TIMESTAMP, server_default=func.now())
 
+    categoria = relationship("CategoriaProducto", back_populates="productos")
+
 
 class Servicio(Base):
     __tablename__ = "servicios"
 
     id_servicio = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_categoria_servicio = Column(Integer, ForeignKey("categorias_servicio.id_categoria_servicio"), nullable=False)
     nombre = Column(String(60), nullable=False)
     descripcion = Column(String(255), nullable=True)
     precio = Column(DECIMAL(10, 2), nullable=False)
@@ -82,6 +104,8 @@ class Servicio(Base):
     imagen_url = Column(String(255), nullable=True)
     estado = Column(Enum("activo", "inactivo"), default="activo", nullable=False)
     fecha_creacion = Column(TIMESTAMP, server_default=func.now())
+
+    categoria = relationship("CategoriaServicio", back_populates="servicios")
 
 
 class Cita(Base):
@@ -121,7 +145,12 @@ class Compra(Base):
     fecha_creacion = Column(TIMESTAMP, server_default=func.now())
 
     cliente = relationship("Usuario")
-    detalles = relationship("CompraDetalle", back_populates="compra")
+    detalles = relationship(
+        "CompraDetalle",
+        back_populates="compra",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class CompraDetalle(Base):

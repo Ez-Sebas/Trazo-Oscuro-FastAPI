@@ -24,8 +24,8 @@ router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
 
 
 @router.post("/login", response_model=TokenResponse)
-def iniciar_sesion(credenciales: LoginRequest, db: Session = Depends(get_db)):
-
+def iniciar_sesion(credenciales: LoginRequest, db: Session = Depends(get_db)
+):
     email_normalizado = credenciales.email.lower().strip()
 
     usuario = (
@@ -77,7 +77,7 @@ def iniciar_sesion(credenciales: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/recuperar-password")
 def solicitar_recuperacion(
     datos: SolicitarRecuperacion, db: Session = Depends(get_db)
-):
+):    
     email_normalizado = datos.email.lower().strip()
     usuario = db.query(Usuario).filter(Usuario.email == email_normalizado).first()
 
@@ -108,7 +108,8 @@ def solicitar_recuperacion(
 
 
 @router.post("/restablecer-password")
-def restablecer_password(datos: RestablecerPassword, db: Session = Depends(get_db)):
+def restablecer_password(datos: RestablecerPassword, db: Session = Depends(get_db)
+):    
     email = verificar_token_recuperacion(datos.token)
 
     usuario = db.query(Usuario).filter(Usuario.email == email).first()

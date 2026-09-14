@@ -1,15 +1,23 @@
 import { useState } from 'react'
 
-export const Input = ({ label, type = 'text', value, onChange, error, name, placeholder, maxLength }) => {
+export const Input = ({ label, type = 'text', value, onChange, error, name, placeholder, maxLength, minLength }) => {
     const [mostrarClave, setMostrarClave] = useState(false)
     const esContrasena = type === 'password'
     const tipoFinal = esContrasena && mostrarClave ? 'text' : type
+    const longitudActual = (value || '').length
 
     return (
         <div className="flex flex-col gap-1 w-full">
-            <label htmlFor={name} className="text-texto-secundario text-xs sm:text-sm">
-                {label}
-            </label>
+            <div className="flex items-center justify-between">
+                <label htmlFor={name} className="text-texto-secundario text-xs sm:text-sm">
+                    {label}
+                </label>
+                {maxLength && (
+                    <span className={`text-xs ${longitudActual > maxLength ? 'text-red-500' : 'text-texto-secundario'}`}>
+                        {longitudActual}/{maxLength}
+                    </span>
+                )}
+            </div>
 
             <div className="relative w-full">
                 <input
@@ -20,6 +28,7 @@ export const Input = ({ label, type = 'text', value, onChange, error, name, plac
                     onChange={onChange}
                     placeholder={placeholder}
                     maxLength={maxLength}
+                    minLength={minLength}
                     className={`bg-fondo border rounded-md px-3 py-2 text-texto text-sm w-full focus:outline-none transition-colors ${
                         esContrasena ? 'pr-10' : ''
                     } ${error ? 'border-red-500' : 'border-borde focus:border-acento'}`}
@@ -46,9 +55,7 @@ export const Input = ({ label, type = 'text', value, onChange, error, name, plac
                 )}
             </div>
 
-            {error && (
-                <span className="text-red-500 text-xs">{error}</span>
-            )}
+            {error && <span className="text-red-500 text-xs">{error}</span>}
         </div>
     )
 }

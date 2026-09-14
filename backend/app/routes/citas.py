@@ -44,7 +44,6 @@ def _cita_a_dict(cita: Cita) -> dict:
 @router.post("", status_code=201)
 async def crear_cita(
     id_servicio: int = Form(...),
-    id_empleado: int = Form(...),
     fecha: date = Form(...),
     hora: time_type = Form(...),
     mensaje: str = Form(""),
@@ -58,22 +57,6 @@ async def crear_cita(
 
     if len(mensaje) > 300:
         raise HTTPException(status_code=400, detail="El mensaje no puede superar 300 caracteres.")
-    
-    empleado = (
-    db.query(Usuario)
-    .join(Usuario.rol)
-    .filter(
-        Usuario.id_usuario == id_empleado,
-        Usuario.rol.has(nombre="Empleado")
-    )
-    .first()
-    )
-
-    if not empleado:
-        raise HTTPException(
-            status_code=400,
-            detail="El empleado seleccionado no es válido."
-        )
 
     ruta_imagen = None
 
@@ -103,7 +86,6 @@ async def crear_cita(
     nueva_cita = Cita(
         id_cliente=usuario_actual.id_usuario,
         id_servicio=id_servicio,
-        id_empleado=id_empleado,
         fecha=fecha,
         hora=hora,
         mensaje=mensaje.strip() if mensaje else None,

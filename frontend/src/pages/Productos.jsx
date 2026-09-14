@@ -1,22 +1,43 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { obtenerProductosActivos } from '../services/productoService.js'
+import { obtenerProductosActivos, obtenerCategoriasProducto } from '../services/productoService.js'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { ImageBox } from '../components/ui/ImageBox.jsx'
 
 export const Productos = () => {
     const [productos, setProductos] = useState([])
+    const [categorias, setCategorias] = useState([])
     const [cargando, setCargando] = useState(true)
     const [agregado, setAgregado] = useState(null)
+
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroCategoria, setFiltroCategoria] = useState('')
+    const [precioMin, setPrecioMin] = useState('')
+    const [precioMax, setPrecioMax] = useState('')
+
     const { agregarProducto } = useCart()
     const { usuario } = useAuth()
     const navigate = useNavigate()
 
     useEffect(() => {
-        obtenerProductosActivos()
-            .then((data) => setProductos(data.productos))
-            .finally(() => setCargando(false))
+        obtenerCategoriasProducto().then((d) => setCategorias(d.categorias))
     }, [])
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCargando(true)
+            obtenerProductosActivos({
+                busqueda,
+                id_categoria_producto: filtroCategoria,
+                precio_min: precioMin,
+                precio_max: precioMax,
+            })
+                .then((data) => setProductos(data.productos))
+                .finally(() => setCargando(false))
+        }, 350)
+        return () => clearTimeout(timer)
+    }, [busqueda, filtroCategoria, precioMin, precioMax])
 
     const manejarAgregar = (producto) => {
         if (!usuario) {
@@ -28,10 +49,17 @@ export const Productos = () => {
         setTimeout(() => setAgregado(null), 1200)
     }
 
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setFiltroCategoria('')
+        setPrecioMin('')
+        setPrecioMax('')
+    }
+
     return (
         <div className="bg-fondo min-h-screen pt-28 pb-20 px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-12">
+                <div className="text-center mb-10">
                     <h1 className="text-texto font-serif text-4xl mb-3">Productos</h1>
                     <p className="text-texto-secundario">Cuidado profesional para tu tatuaje y mercancía del estudio</p>
                 </div>
@@ -44,23 +72,59 @@ export const Productos = () => {
                     </div>
                 )}
 
+                <div className="flex flex-wrap gap-3 mb-10 justify-center">
+                    <input
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        placeholder="Buscar producto..."
+                        className="flex-1 min-w-200px max-w-xs bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm focus:outline-none focus:border-acento"
+                    />
+                    <select
+                        value={filtroCategoria}
+                        onChange={(e) => setFiltroCategoria(e.target.value)}
+                        className="bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    >
+                        <option value="">Todas las categorías</option>
+                        {categorias.map((c) => (
+                            <option key={c.id_categoria_producto} value={c.id_categoria_producto}>{c.nombre}</option>
+                        ))}
+                    </select>
+                    <input
+                        type="number"
+                        value={precioMin}
+                        onChange={(e) => setPrecioMin(e.target.value)}
+                        placeholder="Precio mín."
+                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    />
+                    <input
+                        type="number"
+                        value={precioMax}
+                        onChange={(e) => setPrecioMax(e.target.value)}
+                        placeholder="Precio máx."
+                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    />
+                    {(busqueda || filtroCategoria || precioMin || precioMax) && (
+                        <button
+                            onClick={limpiarFiltros}
+                            className="text-acento text-sm hover:underline cursor-pointer"
+                        >
+                            Limpiar filtros
+                        </button>
+                    )}
+                </div>
+
                 {cargando && <p className="text-texto-secundario text-center">Cargando productos...</p>}
 
                 {!cargando && productos.length === 0 && (
-                    <p className="text-texto-secundario text-center">No hay productos disponibles por el momento.</p>
+                    <p className="text-texto-secundario text-center">No se encontraron productos con esos filtros.</p>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {productos.map((p) => (
                         <div key={p.id_producto} className="bg-superficie rounded-lg overflow-hidden flex flex-col">
-                            <div className="h-48 bg-fondo">
-                                {p.imagen_url ? (
-                                    <img src={p.imagen_url} alt={p.nombre} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-texto-secundario text-sm">Sin imagen</div>
-                                )}
-                            </div>
+                            <ImageBox src={p.imagen_url} alt={p.nombre} />
                             <div className="p-5 flex flex-col flex-1">
+                                <span className="text-texto-secundario text-xs uppercase tracking-wide mb-1">{p.categoria}</span>
                                 <h3 className="text-texto font-serif text-lg mb-2">{p.nombre}</h3>
                                 <p className="text-texto-secundario text-sm mb-4 flex-1">{p.descripcion}</p>
                                 <div className="flex items-center justify-between">

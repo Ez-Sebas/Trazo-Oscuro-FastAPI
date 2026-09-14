@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { obtenerServiciosActivos } from '../services/servicioService.js'
-import { obtenerEmpleado } from '../services/usuarioService.js'
 import { crearCita } from '../services/citaService.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { Input } from '../components/ui/Input.jsx'
@@ -15,12 +14,8 @@ export const Reservas = () => {
     const [servicios, setServicios] = useState([])
     const [cargandoServicios, setCargandoServicios] = useState(true)
 
-    const [empleados, setEmpleados] = useState([])
-    const [cargandoEmpleados, setCargandoEmpleados] = useState(true)
-
     const [datos, setDatos] = useState({
         id_servicio: searchParams.get('servicio') || '',
-        id_empleado: '',
         fecha: '',
         hora: '',
         mensaje: '',
@@ -35,19 +30,13 @@ export const Reservas = () => {
         obtenerServiciosActivos()
             .then((data) => setServicios(data.servicios))
             .finally(() => setCargandoServicios(false))
-
-        obtenerEmpleado()
-            .then((data) => setEmpleados(data.empleados))
-            .finally(() => setCargandoEmpleados(false))
     }, [])
 
     const opcionesServicio = servicios.map((s) => ({ value: s.id_servicio, label: s.nombre }))
-    const opcionesEmpleado = empleados.map((e) => ({ value: e.id_usuario, label: e.nombres + " " + e.apellidos}))
 
     const validar = () => {
         const nuevosErrores = {}
         if (!datos.id_servicio) nuevosErrores.id_servicio = 'Selecciona un servicio.'
-        if (!datos.id_empleado) nuevosErrores.id_empleado = 'Selecciona un empleado.'
         if (!datos.fecha) nuevosErrores.fecha = 'Selecciona una fecha.'
         if (!datos.hora) nuevosErrores.hora = 'Selecciona una hora.'
         if (datos.mensaje.length > 300) nuevosErrores.mensaje = 'Máximo 300 caracteres.'
@@ -82,7 +71,6 @@ export const Reservas = () => {
 
         const formData = new FormData()
         formData.append('id_servicio', datos.id_servicio)
-        formData.append('id_empleado', datos.id_empleado)
         formData.append('fecha', datos.fecha)
         formData.append('hora', datos.hora)
         formData.append('mensaje', datos.mensaje)
@@ -172,18 +160,6 @@ export const Reservas = () => {
                                 onChange={(e) => manejarCambio('id_servicio', e.target.value)}
                                 error={errores.id_servicio}
                                 options={opcionesServicio}
-                            />
-                        )}
-                        {cargandoEmpleados ? (
-                            <p className="text-texto-secundario text-sm">Cargando empleado...</p>
-                        ) : (
-                            <Select
-                                label="Empleado deseado"
-                                name="id_empleado"
-                                value={datos.id_empleado}
-                                onChange={(e) => manejarCambio('id_empleado', e.target.value)}
-                                error={errores.id_empleado}
-                                options={opcionesEmpleado}
                             />
                         )}
 
