@@ -5,6 +5,7 @@ import { RecoverPassword } from '../components/RecoverPassword.jsx'
 import { RegisterModal } from '../components/RegisterModal.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import imagenLogin from '../assets/images/imagen1.jpg'
+import { Icon } from '../components/ui/Icon.jsx'
 
 export const Login = () => {
     const [vista, setVista] = useState('login')
@@ -31,7 +32,7 @@ export const Login = () => {
                 <div className="absolute inset-0 bg-fondo/50" />
                 <div className="absolute inset-0 flex flex-col justify-end p-8 lg:p-10">
                     <Link to="/" className="text-texto font-serif text-base mb-4 inline-block hover:text-acento transition-colors w-fit">
-                        ← Volver al inicio
+                        <span className="inline-flex items-center gap-2"><Icon nombre="atras" size={15} /> Volver al inicio</span>
                     </Link>
                     <h1 className="text-texto font-serif text-2xl lg:text-4xl mb-2">
                         Bienvenido de nuevo
@@ -63,7 +64,7 @@ export const Login = () => {
                 </div>
 
                 <Link to="/" className="md:hidden text-texto-secundario text-sm mt-8 hover:text-acento transition-colors">
-                    ← Volver al inicio
+                    <span className="inline-flex items-center gap-2"><Icon nombre="atras" size={15} /> Volver al inicio</span>
                 </Link>
             </div>
 

@@ -1,11 +1,36 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Input } from './ui/Input.jsx'
 import { Button } from './ui/Button.jsx'
+import { Icon } from './ui/Icon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { iniciarSesionBackend } from '../services/authService.js'
 
+const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const validarFormatoCorreo = (valor) => {
+    if (!valor) return 'El correo es obligatorio.'
+    if (!REGEX_CORREO.test(valor)) return 'Ingresa un correo electrónico válido.'
+    return ''
+}
+
+const validarFormatoContrasena = (valor) => {
+    if (!valor) return 'La contraseña es obligatoria.'
+    if (valor.length < 6) return 'Debe tener al menos 6 caracteres.'
+    return ''
+}
+
+/**
+ * Inicio de sesión en dos pasos, al estilo de Gmail:
+ *   paso 1 → correo   ·   paso 2 → contraseña
+ *
+ * El correo NO se consulta contra el servidor entre un paso y otro: eso
+ * revelaría qué cuentas existen (enumeración de usuarios). Las credenciales
+ * viajan juntas en una sola petición al final, igual que antes; lo que
+ * cambia es la experiencia, que queda más limpia y enfocada.
+ */
 export const Login = ({ onRecuperar, onRegistro }) => {
+    const [paso, setPaso] = useState(1)
     const [correo, setCorreo] = useState('')
     const [contrasena, setContrasena] = useState('')
     const [recordarme, setRecordarme] = useState(false)
@@ -16,19 +41,18 @@ export const Login = ({ onRecuperar, onRegistro }) => {
 
     const { iniciarSesion } = useAuth()
     const navigate = useNavigate()
+    const campoContrasena = useRef(null)
 
-    const validarFormatoCorreo = (valor) => {
-        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!valor) return 'El correo es obligatorio.'
-        if (!regexCorreo.test(valor)) return 'Ingresa un correo electrónico válido.'
-        return ''
-    }
+    // Al pasar al segundo paso el foco va directo a la contraseña.
+    useEffect(() => {
+        if (paso === 2) campoContrasena.current?.querySelector('input')?.focus()
+    }, [paso])
 
-    const validarFormatoContrasena = (valor) => {
-        if (!valor) return 'La contraseña es obligatoria.'
-        if (valor.length < 6) return 'Debe tener al menos 6 caracteres.'
-        return ''
-    }
+    useEffect(() => {
+        if (!exito) return
+        const timer = setTimeout(() => navigate('/'), 1500)
+        return () => clearTimeout(timer)
+    }, [exito, navigate])
 
     const manejarCorreo = (e) => {
         const valor = e.target.value
@@ -42,21 +66,37 @@ export const Login = ({ onRecuperar, onRegistro }) => {
         setErrores((prev) => ({ ...prev, contrasena: validarFormatoContrasena(valor) }))
     }
 
+    const irAlPaso2 = (e) => {
+        e.preventDefault()
+        const errorCorreo = validarFormatoCorreo(correo.trim())
+        if (errorCorreo) {
+            setErrores((prev) => ({ ...prev, correo: errorCorreo }))
+            return
+        }
+        setErrorGeneral('')
+        setPaso(2)
+    }
+
+    const volverAlPaso1 = () => {
+        setPaso(1)
+        setContrasena('')
+        setErrores({ correo: '', contrasena: '' })
+        setErrorGeneral('')
+    }
+
     const manejarEnvio = async (e) => {
         e.preventDefault()
         setErrorGeneral('')
 
-        const errorCorreo = validarFormatoCorreo(correo)
         const errorContrasena = validarFormatoContrasena(contrasena)
-
-        if (errorCorreo || errorContrasena) {
-            setErrores({ correo: errorCorreo, contrasena: errorContrasena })
+        if (errorContrasena) {
+            setErrores((prev) => ({ ...prev, contrasena: errorContrasena }))
             return
         }
 
         setCargandoLogin(true)
         try {
-            const data = await iniciarSesionBackend(correo, contrasena)
+            const data = await iniciarSesionBackend(correo.trim(), contrasena)
             iniciarSesion(data.usuario, data.token, recordarme)
             setExito(true)
         } catch (error) {
@@ -66,18 +106,11 @@ export const Login = ({ onRecuperar, onRegistro }) => {
         }
     }
 
-    useEffect(() => {
-        if (exito) {
-            const timer = setTimeout(() => navigate('/'), 1500)
-            return () => clearTimeout(timer)
-        }
-    }, [exito, navigate])
-
     if (exito) {
         return (
             <div className="text-center py-6">
                 <div className="w-16 h-16 rounded-full bg-acento/15 flex items-center justify-center mx-auto mb-5">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M 5 13 L 10 18 L 19 7" stroke="#B91C1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
@@ -89,29 +122,102 @@ export const Login = ({ onRecuperar, onRegistro }) => {
 
     return (
         <div className="w-full">
+            {/* Indicador de progreso de los dos pasos */}
+            <div className="flex items-center gap-2 mb-6" aria-hidden="true">
+                <span className="step-dot step-dot-activo" />
+                <span className={`step-dot ${paso === 2 ? 'step-dot-activo' : ''}`} />
+            </div>
+
             <h2 className="text-texto font-serif text-xl sm:text-2xl mb-2 text-center">Iniciar sesión</h2>
-            <p className="text-texto-secundario text-sm text-center mb-6">Ingresa tus datos para acceder a tu cuenta</p>
+            <p className="text-texto-secundario text-sm text-center mb-6">
+                {paso === 1 ? 'Ingresa tu correo para continuar' : 'Ahora escribe tu contraseña'}
+            </p>
 
-            <form onSubmit={manejarEnvio} className="flex flex-col gap-4">
-                <Input label="Correo electrónico" name="correo" type="email" value={correo} onChange={manejarCorreo} error={errores.correo} placeholder="tucorreo@ejemplo.com" maxLength={50} />
-                <Input label="Contraseña" name="contrasena" type="password" value={contrasena} onChange={manejarContrasena} error={errores.contrasena} placeholder="••••••••" maxLength={30} />
+            {paso === 1 ? (
+                <form onSubmit={irAlPaso2} className="flex flex-col gap-4" noValidate>
+                    <Input
+                        label="Correo electrónico"
+                        name="correo"
+                        type="email"
+                        value={correo}
+                        onChange={manejarCorreo}
+                        error={errores.correo}
+                        placeholder="tucorreo@ejemplo.com"
+                        maxLength={50}
+                    />
 
-                {errorGeneral && <p className="text-red-500 text-sm text-center">{errorGeneral}</p>}
+                    <Button type="submit" fullWidth>
+                        Siguiente
+                    </Button>
+                </form>
+            ) : (
+                <form onSubmit={manejarEnvio} className="flex flex-col gap-4" noValidate>
+                    {/* Ficha del correo elegido, con opción de corregirlo */}
+                    <div className="flex items-center justify-between gap-3 border border-borde rounded-full pl-3 pr-1.5 py-1.5">
+                        <span className="flex items-center gap-2 min-w-0">
+                            <span className="w-7 h-7 shrink-0 rounded-full bg-acento/15 text-acento-suave flex items-center justify-center">
+                                <Icon nombre="perfil" size={14} />
+                            </span>
+                            <span className="text-texto text-sm truncate">{correo.trim()}</span>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={volverAlPaso1}
+                            className="shrink-0 text-texto-secundario text-xs px-3 py-1.5 rounded-full hover:text-acento transition-colors cursor-pointer"
+                        >
+                            Cambiar
+                        </button>
+                    </div>
 
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                    <label className="flex items-center gap-2 text-texto-secundario text-xs sm:text-sm cursor-pointer">
-                        <input type="checkbox" checked={recordarme} onChange={(e) => setRecordarme(e.target.checked)} className="accent-acento w-4 h-4 cursor-pointer" />
-                        Recordarme
-                    </label>
-                    <button type="button" onClick={onRecuperar} className="text-acento text-xs sm:text-sm hover:underline cursor-pointer">
-                        ¿Olvidaste tu contraseña?
+                    <div ref={campoContrasena}>
+                        <Input
+                            label="Contraseña"
+                            name="contrasena"
+                            type="password"
+                            value={contrasena}
+                            onChange={manejarContrasena}
+                            error={errores.contrasena}
+                            placeholder="••••••••"
+                            maxLength={30}
+                        />
+                    </div>
+
+                    {errorGeneral && (
+                        <p role="alert" className="text-red-500 text-sm text-center">{errorGeneral}</p>
+                    )}
+
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                        <label className="flex items-center gap-2 text-texto-secundario text-xs sm:text-sm cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={recordarme}
+                                onChange={(e) => setRecordarme(e.target.checked)}
+                                className="accent-acento w-4 h-4 cursor-pointer"
+                            />
+                            Recordarme
+                        </label>
+                        <button
+                            type="button"
+                            onClick={onRecuperar}
+                            className="text-acento text-xs sm:text-sm hover:underline cursor-pointer"
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </button>
+                    </div>
+
+                    <Button type="submit" fullWidth disabled={cargandoLogin}>
+                        {cargandoLogin ? 'Ingresando...' : 'Iniciar sesión'}
+                    </Button>
+
+                    <button
+                        type="button"
+                        onClick={volverAlPaso1}
+                        className="inline-flex items-center justify-center gap-2 text-texto-secundario text-sm hover:text-acento transition-colors cursor-pointer"
+                    >
+                        <Icon nombre="atras" size={14} /> Volver
                     </button>
-                </div>
-
-                <Button type="submit" fullWidth disabled={cargandoLogin}>
-                    {cargandoLogin ? 'Ingresando...' : 'Iniciar sesión'}
-                </Button>
-            </form>
+                </form>
+            )}
 
             <p className="text-texto-secundario text-sm text-center mt-6">
                 ¿No tienes cuenta?{' '}

@@ -4,6 +4,7 @@ import { Input } from './ui/Input.jsx'
 import { Select } from './ui/Select.jsx'
 import { Button } from './ui/Button.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { Icon } from './ui/Icon.jsx'
 
 const tiposDocumento = [
     { value: 'CC', label: 'Cédula de Ciudadanía' },
@@ -62,7 +63,14 @@ export const PerfilForm = () => {
     if (!datos) return <p className="text-red-500 text-sm">{error || 'No fue posible cargar tu perfil.'}</p>
 
     return (
-        <form onSubmit={manejarGuardar} className="bg-superficie rounded-lg p-6 flex flex-col gap-4">
+        <form onSubmit={manejarGuardar} className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-xl border border-borde bg-borde">
+                <div className="bg-fondo p-4"><Icon nombre="perfil" size={17} className="text-acento-suave" /><p className="text-texto-secundario text-[10px] uppercase tracking-wider mt-3">Perfil</p><p className="text-texto text-sm mt-1">Información personal</p></div>
+                <div className="bg-fondo p-4"><Icon nombre="citas" size={17} className="text-acento-suave" /><p className="text-texto-secundario text-[10px] uppercase tracking-wider mt-3">Acceso</p><p className="text-texto text-sm mt-1">Cuenta activa</p></div>
+                <div className="bg-fondo p-4"><Icon nombre="cerrar" size={17} className="text-acento-suave" /><p className="text-texto-secundario text-[10px] uppercase tracking-wider mt-3">Privacidad</p><p className="text-texto text-sm mt-1">Datos protegidos</p></div>
+            </div>
+            <div className="bg-superficie border border-borde rounded-2xl p-5 sm:p-7 flex flex-col gap-4">
+            <div className="border-b border-borde pb-4 mb-1"><p className="text-acento-suave text-[10px] font-bold tracking-[0.18em] uppercase">Datos de contacto</p><p className="text-texto-secundario text-xs mt-2">Mantén esta información actualizada para facilitar tus reservas.</p></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Nombres" name="nombres" value={datos.nombres} onChange={(e) => manejarCambio('nombres', e.target.value)} maxLength={30} />
                 <Input label="Apellidos" name="apellidos" value={datos.apellidos} onChange={(e) => manejarCambio('apellidos', e.target.value)} maxLength={30} />
@@ -83,6 +91,7 @@ export const PerfilForm = () => {
             <Button type="submit" disabled={guardando}>
                 {guardando ? 'Guardando...' : 'Guardar cambios'}
             </Button>
+            </div>
         </form>
     )
 }

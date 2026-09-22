@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Annotated, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -103,7 +103,7 @@ def listar_productos(
 
 
 @router.get("/{id_producto}")
-def obtener_producto(id_producto: int, db: Session = Depends(get_db)):
+def obtener_producto(id_producto: Annotated[int, Path(ge=1, description="Identificador del producto")], db: Session = Depends(get_db)):
     producto = (
         db.query(Producto)
         .options(joinedload(Producto.categoria))
@@ -139,7 +139,7 @@ def crear_producto(datos: ProductoCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{id_producto}", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
-def editar_producto(id_producto: int, datos: ProductoUpdate, db: Session = Depends(get_db)):
+def editar_producto(id_producto: Annotated[int, Path(ge=1, description="Identificador del producto")], datos: ProductoUpdate, db: Session = Depends(get_db)):
     producto = db.query(Producto).filter(Producto.id_producto == id_producto).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado.")
@@ -161,7 +161,7 @@ def editar_producto(id_producto: int, datos: ProductoUpdate, db: Session = Depen
 
 
 @router.patch("/{id_producto}/estado", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
-def cambiar_estado_producto(id_producto: int, datos: ProductoEstadoUpdate, db: Session = Depends(get_db)):
+def cambiar_estado_producto(id_producto: Annotated[int, Path(ge=1, description="Identificador del producto")], datos: ProductoEstadoUpdate, db: Session = Depends(get_db)):
     producto = db.query(Producto).filter(Producto.id_producto == id_producto).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado.")
@@ -171,7 +171,7 @@ def cambiar_estado_producto(id_producto: int, datos: ProductoEstadoUpdate, db: S
 
 
 @router.delete("/{id_producto}", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
-def eliminar_producto(id_producto: int, db: Session = Depends(get_db)):
+def eliminar_producto(id_producto: Annotated[int, Path(ge=1, description="Identificador del producto")], db: Session = Depends(get_db)):
     producto = db.query(Producto).filter(Producto.id_producto == id_producto).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado.")

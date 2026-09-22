@@ -2,8 +2,10 @@
 
 @theme {
   --color-fondo: #0A0A0A;
-  --color-superficie: #1A1A1A;
+  --color-superficie: #151515;
+  --color-superficie-clara: #202020;
   --color-acento: #B91C1C;
+  --color-acento-suave: #E45A5A;
   --color-texto: #F5F5F4;
   --color-texto-secundario: #A8A29E;
   --color-borde: #3F3F3F;
@@ -16,10 +18,305 @@
 body {
   margin: 0;
   color: var(--color-texto);
-  background: var(--color-fondo-claro);
+  background: var(--color-fondo);
+  font-family: 'Trebuchet MS', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  color: var(--color-texto);
+  background: var(--color-acento);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-acento-suave);
+  outline-offset: 3px;
+}
+
+.page-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 8%, rgba(185, 28, 28, 0.12), transparent 24rem),
+    var(--color-fondo);
+}
+
+.page-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 65%);
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 28, 28, 0.7) transparent;
+}
+
+.panel-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.panel-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(185, 28, 28, 0.7);
+  border-radius: 999px;
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(228, 90, 90, 0.95);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-acento-suave);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.editorial-title {
+  font-family: Georgia, serif;
+  letter-spacing: -0.025em;
+  line-height: 0.98;
+}
+
+.admin-select {
+  appearance: auto;
+  color: var(--color-texto);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.admin-select:hover,
+.admin-select:focus {
+  border-color: var(--color-acento);
+  background-color: var(--color-superficie-clara);
+}
+
+.admin-table-shell {
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-superficie) 88%, transparent);
+}
+
+.admin-table thead {
+  background: rgba(10, 10, 10, 0.55);
+}
+
+.admin-table th {
+  padding: 0.8rem 1rem;
+  color: var(--color-texto-secundario);
+  border-bottom: 1px solid var(--color-borde);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 1rem;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid rgba(63, 63, 63, 0.5);
+}
+
+.admin-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.reveal-up {
+  animation: reveal-up 0.75s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.reveal-delay-1 { animation-delay: 0.1s; }
+.reveal-delay-2 { animation-delay: 0.2s; }
+.reveal-delay-3 { animation-delay: 0.3s; }
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
 }
+
+/* ============================================================
+   SISTEMA DE DISEÑO — clases reutilizables
+   Antes cada página repetía la misma cadena de utilidades de
+   Tailwind para inputs, tarjetas y etiquetas; al centralizarlas
+   los paneles quedan consistentes y se ajustan desde un solo sitio.
+   ============================================================ */
+
+.field {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.field::placeholder {
+  color: color-mix(in srgb, var(--color-texto-secundario) 70%, transparent);
+}
+
+.field:hover {
+  border-color: color-mix(in srgb, var(--color-acento) 55%, var(--color-borde));
+}
+
+.field:focus {
+  border-color: var(--color-acento);
+  outline: none;
+}
+
+/* Los selectores nativos necesitan la flecha del sistema para verse
+   correctamente sobre fondo oscuro en Windows. */
+.field-select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--color-texto-secundario);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 1rem;
+}
+
+.kpi-card {
+  padding: 1rem 1.25rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.kpi-card:hover {
+  border-color: color-mix(in srgb, var(--color-acento) 50%, var(--color-borde));
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.badge-neutro {
+  color: var(--color-texto-secundario);
+  background: var(--color-superficie-clara);
+  border-color: var(--color-borde);
+}
+
+.badge-info {
+  color: #93C5FD;
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.badge-exito {
+  color: #6EE7B7;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.badge-alerta {
+  color: #FCD34D;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.badge-peligro {
+  color: var(--color-acento-suave);
+  background: rgba(185, 28, 28, 0.14);
+  border-color: rgba(185, 28, 28, 0.4);
+}
+
+/* Barra de pasos del login y del registro en dos tiempos. */
+.step-dot {
+  height: 3px;
+  flex: 1;
+  border-radius: 999px;
+  background: var(--color-borde);
+  transition: background-color 0.3s ease;
+}
+
+.step-dot-activo {
+  background: var(--color-acento);
+}
+
+/* Medidor de fuerza de la contraseña: el color acompaña al mensaje. */
+.step-dot-debil { background: #EF4444; }
+.step-dot-medio { background: #F59E0B; }
+.step-dot-fuerte { background: #10B981; }

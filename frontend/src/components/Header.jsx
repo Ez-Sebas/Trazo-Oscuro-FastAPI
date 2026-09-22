@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import { UserMenu } from './UserMenu.jsx'
 import { CartDrawer } from './CartDrawer.jsx'
+import { Icon } from './ui/Icon.jsx'
 
 export const Header = () => {
     const [scrolled, setScrolled] = useState(false)
@@ -28,9 +29,9 @@ export const Header = () => {
 
     return (
         <>
-            <header className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${scrolled ? 'bg-fondo/80 backdrop-blur-sm' : 'bg-fondo'}`}>
+            <header className={`fixed top-0 left-0 w-full z-50 border-b transition-all duration-300 ${scrolled ? 'bg-fondo/90 border-borde/70 backdrop-blur-md' : 'bg-fondo border-transparent'}`}>
                 <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-                    <Link to="/" onClick={() => setMenuAbierto(false)}>
+                    <Link to="/" onClick={() => setMenuAbierto(false)} className="transition-opacity hover:opacity-75">
                         <div className="flex items-center">
                             <svg className="w-36 h-auto sm:w-44 md:w-52 lg:w-220px" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg" aria-label="Trazo Oscuro">
                                 <g transform="translate(22, -4)">
@@ -44,10 +45,11 @@ export const Header = () => {
                         </div>
                     </Link>
 
-                    <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+                    <nav className="hidden md:flex items-center gap-1 lg:gap-2">
                         {enlaces.map((enlace) => (
-                            <Link key={enlace.to} to={enlace.to} className="text-texto text-sm lg:text-base px-2 py-2 rounded-lg whitespace-nowrap hover:bg-fondo hover:shadow-[0_4px_8px] hover:text-acento transition-all duration-300">
+                            <Link key={enlace.to} to={enlace.to} className="group relative text-texto-secundario text-sm lg:text-base px-3 py-2 whitespace-nowrap hover:text-texto transition-colors duration-300">
                                 {enlace.texto}
+                                <span className="absolute bottom-0 left-3 right-3 h-px origin-left scale-x-0 bg-acento transition-transform duration-300 group-hover:scale-x-100" />
                             </Link>
                         ))}
                     </nav>
@@ -58,11 +60,7 @@ export const Header = () => {
                             className="relative text-texto hover:text-acento transition-colors cursor-pointer"
                             aria-label="Abrir carrito"
                         >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                <path d="M3 3h2l2.4 12.4a2 2 0 002 1.6h8.4a2 2 0 002-1.6L21 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                <circle cx="9" cy="20" r="1.4" fill="currentColor" />
-                                <circle cx="17" cy="20" r="1.4" fill="currentColor" />
-                            </svg>
+                            <Icon nombre="carrito" size={22} />
                             {cantidadTotal > 0 && (
                                 <span className="absolute -top-2 -right-2 bg-acento text-texto text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                                     {cantidadTotal}
@@ -73,7 +71,7 @@ export const Header = () => {
                         {usuario ? (
                             <UserMenu variant="desktop" />
                         ) : (
-                            <Link to="/login" className="text-texto text-sm lg:text-base px-2 py-2 rounded-lg whitespace-nowrap hover:bg-fondo hover:shadow-[0_4px_8px] hover:text-acento transition-all duration-300">
+                            <Link to="/login" className="text-texto text-sm lg:text-base px-4 py-2 border border-borde rounded-full whitespace-nowrap hover:border-acento hover:text-acento transition-colors duration-300">
                                 Iniciar sesión
                             </Link>
                         )}
@@ -85,11 +83,7 @@ export const Header = () => {
                             className="relative text-texto"
                             aria-label="Abrir carrito"
                         >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                <path d="M3 3h2l2.4 12.4a2 2 0 002 1.6h8.4a2 2 0 002-1.6L21 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                <circle cx="9" cy="20" r="1.4" fill="currentColor" />
-                                <circle cx="17" cy="20" r="1.4" fill="currentColor" />
-                            </svg>
+                            <Icon nombre="carrito" size={22} />
                             {cantidadTotal > 0 && (
                                 <span className="absolute -top-2 -right-2 bg-acento text-texto text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                                     {cantidadTotal}
@@ -98,18 +92,12 @@ export const Header = () => {
                         </button>
 
                         <button onClick={() => setMenuAbierto(!menuAbierto)} className="text-texto w-9 h-9 flex items-center justify-center cursor-pointer" aria-label="Abrir menú">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                {menuAbierto ? (
-                                    <path d="M 5 5 L 19 19 M 19 5 L 5 19" stroke="#F5F5F4" strokeWidth="2" strokeLinecap="round" />
-                                ) : (
-                                    <path d="M 4 6 L 20 6 M 4 12 L 20 12 M 4 18 L 20 18" stroke="#F5F5F4" strokeWidth="2" strokeLinecap="round" />
-                                )}
-                            </svg>
+                            <Icon nombre={menuAbierto ? 'cerrarMenu' : 'menu'} size={24} />
                         </button>
                     </div>
                 </div>
 
-                <div className={`md:hidden overflow-hidden transition-all duration-300 ${menuAbierto ? 'max-h-96' : 'max-h-0'}`}>
+                <div className={`md:hidden overflow-hidden transition-all duration-300 ${menuAbierto ? 'max-h-600px' : 'max-h-0'}`}>
                     <nav className="flex flex-col px-6 pb-4 gap-1 bg-fondo border-t border-borde">
                         {enlaces.map((enlace) => (
                             <Link key={enlace.to} to={enlace.to} onClick={() => setMenuAbierto(false)} className="text-texto text-sm px-2 py-3 rounded-lg hover:text-acento transition-colors">

@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Annotated, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -101,7 +101,7 @@ def listar_servicios(
 
 
 @router.get("/{id_servicio}")
-def obtener_servicio(id_servicio: int, db: Session = Depends(get_db)):
+def obtener_servicio(id_servicio: Annotated[int, Path(ge=1, description="Identificador del servicio")], db: Session = Depends(get_db)):
     servicio = (
         db.query(Servicio)
         .options(joinedload(Servicio.categoria))
@@ -137,7 +137,7 @@ def crear_servicio(datos: ServicioCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{id_servicio}", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
-def editar_servicio(id_servicio: int, datos: ServicioUpdate, db: Session = Depends(get_db)):
+def editar_servicio(id_servicio: Annotated[int, Path(ge=1, description="Identificador del servicio")], datos: ServicioUpdate, db: Session = Depends(get_db)):
     servicio = db.query(Servicio).filter(Servicio.id_servicio == id_servicio).first()
     if not servicio:
         raise HTTPException(status_code=404, detail="Servicio no encontrado.")
@@ -159,7 +159,7 @@ def editar_servicio(id_servicio: int, datos: ServicioUpdate, db: Session = Depen
 
 
 @router.patch("/{id_servicio}/estado", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
-def cambiar_estado_servicio(id_servicio: int, datos: ServicioEstadoUpdate, db: Session = Depends(get_db)):
+def cambiar_estado_servicio(id_servicio: Annotated[int, Path(ge=1, description="Identificador del servicio")], datos: ServicioEstadoUpdate, db: Session = Depends(get_db)):
     servicio = db.query(Servicio).filter(Servicio.id_servicio == id_servicio).first()
     if not servicio:
         raise HTTPException(status_code=404, detail="Servicio no encontrado.")
@@ -169,7 +169,7 @@ def cambiar_estado_servicio(id_servicio: int, datos: ServicioEstadoUpdate, db: S
 
 
 @router.delete("/{id_servicio}", dependencies=[Depends(requerir_roles("Administrador"))])
-def eliminar_servicio(id_servicio: int, db: Session = Depends(get_db)):
+def eliminar_servicio(id_servicio: Annotated[int, Path(ge=1, description="Identificador del servicio")], db: Session = Depends(get_db)):
     servicio = db.query(Servicio).filter(Servicio.id_servicio == id_servicio).first()
     if not servicio:
         raise HTTPException(status_code=404, detail="Servicio no encontrado.")

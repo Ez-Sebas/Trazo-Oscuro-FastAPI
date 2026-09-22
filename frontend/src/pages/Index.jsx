@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Carousel } from '../components/Carousel.jsx'
 import { TattooStyles } from '../components/TattooStyles.jsx'
+import { Icon } from '../components/ui/Icon.jsx'
 
 const estadisticas = [
     { numero: '8+', texto: 'Años de experiencia' },
@@ -11,13 +12,13 @@ const estadisticas = [
 
 export const Index = () => {
     return (
-        <div className="bg-fondo">
+        <div className="page-shell">
             <Carousel />
-            <section className="max-w-6xl mx-auto px-6 py-12 sm:py-16">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+            <section className="page-content max-w-6xl mx-auto px-6 py-10 sm:py-16">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-borde bg-borde">
                     {estadisticas.map((stat, i) => (
-                        <div key={i} className="text-center p-3 sm:p-4 rounded-lg bg-fondo shadow-[0_4px_10px] text-acento transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                            <p className="text-acento font-serif text-3xl sm:text-4xl mb-2">
+                        <div key={i} className="text-center p-4 sm:p-6 bg-superficie hover:bg-superficie-clara transition-colors">
+                            <p className="text-acento-suave font-serif text-3xl sm:text-4xl mb-2">
                                 {stat.numero}
                             </p>
                             <p className="text-texto-secundario text-xs sm:text-sm">
@@ -28,17 +29,17 @@ export const Index = () => {
                 </div>
             </section>
             <TattooStyles />
-            <section className="bg-fondo">
-                <div className="max-w-6xl mx-auto px-6 py-14 sm:py-20">
-                    <div className="max-w-2xl mx-auto text-center md:text-left md:mx-0">
-                        <h2 className="text-texto font-serif text-2xl sm:text-3xl md:text-4xl mb-4">
-                            Más que un estudio, una comunidad del arte
-                        </h2>
+            <section className="page-content border-t border-borde">
+                <div className="max-w-6xl mx-auto px-6 py-16 sm:py-24 grid md:grid-cols-[1fr_auto] gap-8 items-end">
+                    <div className="max-w-2xl">
+                        <span className="eyebrow">La filosofía del estudio</span>
+                        <h2 className="editorial-title text-texto text-4xl sm:text-5xl mt-5 mb-4">Más que un estudio, una comunidad del arte.</h2>
                         <p className="text-texto-secundario mb-6 leading-relaxed text-sm sm:text-base">
                             En Trazo Oscuro creemos que cada tatuaje cuenta una historia. Conoce quiénes somos, nuestra trayectoria y la filosofía que nos define como estudio.
                         </p>
-                        <Link to="/quienes-somos" className="inline-block bg-acento text-texto px-6 py-3 rounded-md hover:bg-red-800 transition-colors text-sm sm:text-base">
+                        <Link to="/quienes-somos" className="inline-flex items-center gap-3 bg-acento text-texto px-6 py-3 rounded-lg hover:bg-red-800 transition-colors text-sm sm:text-base">
                             Conócenos
+                            <Icon nombre="adelante" size={16} />
                         </Link>
                     </div>
                 </div>

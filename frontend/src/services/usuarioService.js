@@ -3,6 +3,7 @@ import { apiFetch } from './api.js'
 export const obtenerUsuarios = () => apiFetch('/usuarios')
 export const obtenerEmpleadosActivos = () => apiFetch('/usuarios/empleados/activos')
 export const obtenerUsuario = (id) => apiFetch(`/usuarios/${id}`)
+export const obtenerClientes = () => apiFetch('/usuarios/clientes')
 export const crearUsuarioAdmin = (datos) => apiFetch('/usuarios', { method: 'POST', body: JSON.stringify(datos) })
 export const actualizarUsuario = (id, datos) => apiFetch(`/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(datos) })
 export const cambiarEstadoUsuario = (id, estado) => apiFetch(`/usuarios/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) })

@@ -4,7 +4,7 @@ export const Select = ({ label, value, onChange, error, name, options }) => {
             <label htmlFor={name} className="text-texto-secundario text-xs sm:text-sm">
                 {label}
             </label>
-            <select id={name} name={name} value={value} onChange={onChange} className={`bg-fondo border rounded-md px-3 py-2 text-texto text-sm w-full focus:outline-none transition-colors cursor-pointer ${ error ? 'border-red-500' : 'border-borde focus:border-acento'}`}>
+            <select id={name} name={name} value={value} onChange={onChange} className={`admin-select border rounded-md px-3 py-2 text-texto text-sm w-full focus:outline-none transition-colors cursor-pointer ${ error ? 'border-red-500' : ''}`}>
                 <option value="" disabled>
                     Selecciona una opción
                 </option>

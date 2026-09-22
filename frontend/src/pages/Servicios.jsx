@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { obtenerServiciosActivos, obtenerCategoriasServicio } from '../services/servicioService.js'
 import { ImageBox } from '../components/ui/ImageBox.jsx'
+import { Icon } from '../components/ui/Icon.jsx'
 
 export const Servicios = () => {
     const [servicios, setServicios] = useState([])
@@ -40,24 +41,25 @@ export const Servicios = () => {
     }
 
     return (
-        <div className="bg-fondo min-h-screen pt-28 pb-20 px-6">
-            <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-10">
-                    <h1 className="text-texto font-serif text-4xl mb-3">Servicios</h1>
-                    <p className="text-texto-secundario">Estilos de tatuaje disponibles en Trazo Oscuro</p>
+        <div className="page-shell min-h-screen pt-28 pb-24 px-6">
+            <div className="page-content max-w-6xl mx-auto">
+                <div className="max-w-2xl mb-10 sm:mb-14">
+                    <span className="eyebrow">El lenguaje de tu piel</span>
+                    <h1 className="editorial-title text-texto text-5xl sm:text-6xl mt-5 mb-4">Diseños pensados para durar.</h1>
+                    <p className="text-texto-secundario text-base sm:text-lg">Conoce nuestras técnicas y encuentra la forma adecuada de convertir tu idea en una pieza única.</p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mb-10 justify-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_0.8fr_0.8fr_auto] gap-3 mb-10 p-4 bg-superficie border border-borde rounded-2xl">
                     <input
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
                         placeholder="Buscar servicio..."
-                        className="flex-1 min-w-200px max-w-xs bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm focus:outline-none focus:border-acento"
+                        className="field"
                     />
                     <select
                         value={filtroCategoria}
                         onChange={(e) => setFiltroCategoria(e.target.value)}
-                        className="bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                        className="field"
                     >
                         <option value="">Todas las categorías</option>
                         {categorias.map((c) => (
@@ -69,21 +71,21 @@ export const Servicios = () => {
                         value={precioMin}
                         onChange={(e) => setPrecioMin(e.target.value)}
                         placeholder="Precio mín."
-                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                        className="field"
                     />
                     <input
                         type="number"
                         value={precioMax}
                         onChange={(e) => setPrecioMax(e.target.value)}
                         placeholder="Precio máx."
-                        className="w-32 bg-superficie border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                        className="field"
                     />
                     {(busqueda || filtroCategoria || precioMin || precioMax) && (
                         <button
                             onClick={limpiarFiltros}
-                            className="text-acento text-sm hover:underline cursor-pointer"
+                            className="text-acento-suave text-sm hover:text-texto cursor-pointer self-center"
                         >
-                            Limpiar filtros
+                            <span className="inline-flex items-center gap-2"><Icon nombre="filtro" size={15} /> Limpiar filtros</span>
                         </button>
                     )}
                 </div>
@@ -94,9 +96,9 @@ export const Servicios = () => {
                     <p className="text-texto-secundario text-center">No se encontraron servicios con esos filtros.</p>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {servicios.map((s) => (
-                        <div key={s.id_servicio} className="bg-superficie rounded-lg overflow-hidden flex flex-col">
+                        <div key={s.id_servicio} className="group bg-superficie border border-borde rounded-2xl overflow-hidden flex flex-col hover:border-acento/60 transition-colors">
                             <ImageBox src={s.imagen_url} alt={s.nombre} />
                             <div className="p-5 flex flex-col flex-1">
                                 <span className="text-texto-secundario text-xs uppercase tracking-wide mb-1">{s.categoria}</span>
@@ -106,9 +108,9 @@ export const Servicios = () => {
                                 <p className="text-texto-secundario text-xs mb-4">{s.duracion_estimada}</p>
                                 <Link
                                     to={`/reservas?servicio=${s.id_servicio}`}
-                                    className="bg-acento text-texto text-sm text-center px-4 py-2 rounded-md hover:bg-red-800 transition-colors"
+                                    className="bg-acento text-texto text-sm text-center px-4 py-2.5 rounded-lg hover:bg-red-800 transition-colors"
                                 >
-                                    Reservar
+                                    <span className="inline-flex items-center justify-center gap-2">Reservar <Icon nombre="adelante" size={15} /></span>
                                 </Link>
                             </div>
                         </div>

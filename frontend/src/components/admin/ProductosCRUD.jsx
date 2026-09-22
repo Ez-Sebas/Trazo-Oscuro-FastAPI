@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
     obtenerProductos, obtenerCategoriasProducto, crearProducto,
     editarProducto, cambiarEstadoProducto, eliminarProducto
@@ -8,6 +8,7 @@ import { Select } from '../ui/Select.jsx'
 import { Button } from '../ui/Button.jsx'
 import { Modal } from '../ui/Modal.jsx'
 import { ImageBox } from '../ui/ImageBox.jsx'
+import { Icon } from '../ui/Icon.jsx'
 
 const valoresIniciales = { id_categoria_producto: '', nombre: '', descripcion: '', precio: '', stock: '', imagen_url: '' }
 
@@ -28,7 +29,7 @@ export const ProductosCRUD = () => {
     const [pagina, setPagina] = useState(1)
     const [totalPaginas, setTotalPaginas] = useState(1)
 
-    const cargar = async () => {
+    const cargar = useCallback(async () => {
         setCargando(true)
         try {
             const data = await obtenerProductos({
@@ -40,7 +41,7 @@ export const ProductosCRUD = () => {
         } finally {
             setCargando(false)
         }
-    }
+    }, [busqueda, filtroCategoria, precioMin, precioMax, filtroEstado, pagina])
 
     useEffect(() => {
         obtenerCategoriasProducto().then((d) => setCategorias(d.categorias))
@@ -49,7 +50,7 @@ export const ProductosCRUD = () => {
     useEffect(() => {
         const timer = setTimeout(cargar, 350)
         return () => clearTimeout(timer)
-    }, [busqueda, filtroCategoria, precioMin, precioMax, filtroEstado, pagina])
+    }, [cargar])
 
     const validarCampo = (nombre, valor) => {
         const regexNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/
@@ -144,25 +145,25 @@ export const ProductosCRUD = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-texto font-serif text-lg">Productos</h2>
-                <Button onClick={abrirCrear}>Agregar producto</Button>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
+                <div><p className="text-acento-suave text-[10px] font-bold tracking-[0.18em] uppercase">Inventario</p><h2 className="text-texto font-serif text-2xl mt-1">Productos</h2></div>
+                <Button onClick={abrirCrear}><span className="inline-flex items-center gap-2"><Icon nombre="mas" size={16} /> Agregar producto</span></Button>
             </div>
 
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_0.7fr_0.7fr_1fr_auto] gap-3 mb-6 p-4 bg-superficie border border-borde rounded-2xl">
                 <input
                     value={busqueda}
                     onChange={(e) => { setBusqueda(e.target.value); setPagina(1) }}
                     placeholder="Buscar producto..."
-                    className="flex-1 min-w-180px bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm focus:outline-none focus:border-acento"
+                    className="field"
                 />
-                <select value={filtroCategoria} onChange={(e) => { setFiltroCategoria(e.target.value); setPagina(1) }} className="bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm">
+                <select value={filtroCategoria} onChange={(e) => { setFiltroCategoria(e.target.value); setPagina(1) }} className="admin-select w-full px-3 py-2.5 text-texto text-sm">
                     <option value="">Todas las categorías</option>
                     {categorias.map((c) => <option key={c.id_categoria_producto} value={c.id_categoria_producto}>{c.nombre}</option>)}
                 </select>
-                <input type="number" value={precioMin} onChange={(e) => { setPrecioMin(e.target.value); setPagina(1) }} placeholder="Precio mín." className="w-28 bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm" />
-                <input type="number" value={precioMax} onChange={(e) => { setPrecioMax(e.target.value); setPagina(1) }} placeholder="Precio máx." className="w-28 bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm" />
-                <select value={filtroEstado} onChange={(e) => { setFiltroEstado(e.target.value); setPagina(1) }} className="bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm">
+                <input type="number" value={precioMin} onChange={(e) => { setPrecioMin(e.target.value); setPagina(1) }} placeholder="Precio mín." className="field" />
+                <input type="number" value={precioMax} onChange={(e) => { setPrecioMax(e.target.value); setPagina(1) }} placeholder="Precio máx." className="field" />
+                <select value={filtroEstado} onChange={(e) => { setFiltroEstado(e.target.value); setPagina(1) }} className="admin-select w-full px-3 py-2.5 text-texto text-sm">
                     <option value="">Todos los estados</option>
                     <option value="activo">Activo</option>
                     <option value="inactivo">Inactivo</option>
@@ -170,26 +171,26 @@ export const ProductosCRUD = () => {
                 {(busqueda || filtroCategoria || precioMin || precioMax || filtroEstado) && (
                     <button
                         onClick={limpiarFiltros}
-                        className="text-acento text-sm hover:underline cursor-pointer"
+                        className="text-acento-suave text-sm hover:text-texto cursor-pointer"
                     >
-                        Limpiar filtros
+                        <span className="inline-flex items-center gap-2"><Icon nombre="filtro" size={15} /> Limpiar filtros</span>
                     </button>
                 )}
             </div>
 
             <Modal abierto={modalAbierto} onCerrar={cerrarModal} titulo={modoEdicion ? 'Editar producto' : 'Agregar producto'}>
                 <form onSubmit={manejarGuardar} className="flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input label="Nombre" name="nombre" value={form.nombre} onChange={manejarCambio} error={errores.nombre} maxLength={60} />
                         <Select label="Categoría" name="id_categoria_producto" value={form.id_categoria_producto} onChange={manejarCambio} error={errores.id_categoria_producto} options={opcionesCategoria} />
                     </div>
                     <Input label="Descripción" name="descripcion" value={form.descripcion} onChange={manejarCambio} error={errores.descripcion} maxLength={255} />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input label="Precio" name="precio" type="number" value={form.precio} onChange={manejarCambio} error={errores.precio} />
                         <Input label="Stock" name="stock" type="number" value={form.stock} onChange={manejarCambio} error={errores.stock} />
                     </div>
                     <Input label="URL de imagen (recomendado 4:3, ej. 800x600px)" name="imagen_url" value={form.imagen_url} onChange={manejarCambio} placeholder="https://..." maxLength={255} />
-                    <Button type="submit">{modoEdicion ? 'Guardar cambios' : 'Crear producto'}</Button>
+                    <Button type="submit"><span className="inline-flex items-center gap-2"><Icon nombre={modoEdicion ? 'check' : 'mas'} size={16} /> {modoEdicion ? 'Guardar cambios' : 'Crear producto'}</span></Button>
                 </form>
             </Modal>
 
@@ -197,9 +198,9 @@ export const ProductosCRUD = () => {
                 <p className="text-texto-secundario">Cargando productos...</p>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                         {productos.map((p) => (
-                            <div key={p.id_producto} className="bg-fondo rounded-lg overflow-hidden">
+                            <div key={p.id_producto} className="bg-fondo border border-borde rounded-2xl overflow-hidden hover:border-acento/60 transition-colors">
                                 <ImageBox src={p.imagen_url} alt={p.nombre} />
                                 <div className="p-4">
                                     <span className="text-texto-secundario text-xs uppercase tracking-wide">{p.categoria}</span>
@@ -207,12 +208,12 @@ export const ProductosCRUD = () => {
                                     <p className="text-texto-secundario text-sm mb-2 line-clamp-2">{p.descripcion}</p>
                                     <p className="text-texto-secundario text-sm">${Number(p.precio).toLocaleString('es-CO')} · Stock: {p.stock}</p>
                                     <span className={`inline-block mt-2 px-2 py-0.5 rounded text-xs ${p.estado === 'activo' ? 'bg-acento/15 text-acento' : 'bg-borde/30 text-texto-secundario'}`}>{p.estado}</span>
-                                    <div className="flex gap-3 mt-3">
-                                        <button onClick={() => abrirEditar(p)} className="text-texto-secundario text-sm hover:text-acento cursor-pointer">Editar</button>
-                                        <button onClick={() => alternarEstado(p)} className="text-texto-secundario text-sm hover:text-acento cursor-pointer">
-                                            {p.estado === 'activo' ? 'Desactivar' : 'Activar'}
+                                    <div className="flex flex-wrap gap-x-3 gap-y-2 mt-4 pt-3 border-t border-borde/60">
+                                        <button onClick={() => abrirEditar(p)} className="inline-flex items-center gap-1.5 text-texto-secundario text-xs sm:text-sm hover:text-acento cursor-pointer"><Icon nombre="editar" size={14} /> Editar</button>
+                                        <button onClick={() => alternarEstado(p)} className="text-texto-secundario text-xs sm:text-sm hover:text-acento cursor-pointer">
+                                            <span className="inline-flex items-center gap-1.5"><Icon nombre={p.estado === 'activo' ? 'cerrar' : 'check'} size={14} /> {p.estado === 'activo' ? 'Desactivar' : 'Activar'}</span>
                                         </button>
-                                        <button onClick={() => eliminar(p.id_producto)} className="text-red-500 text-sm hover:underline cursor-pointer">Eliminar</button>
+                                        <button onClick={() => eliminar(p.id_producto)} className="inline-flex items-center gap-1.5 text-red-500 text-xs sm:text-sm hover:underline cursor-pointer"><Icon nombre="eliminar" size={14} /> Eliminar</button>
                                     </div>
                                 </div>
                             </div>
@@ -222,9 +223,9 @@ export const ProductosCRUD = () => {
 
                     {totalPaginas > 1 && (
                         <div className="flex justify-center items-center gap-3 mt-6">
-                            <button disabled={pagina === 1} onClick={() => setPagina(p => p - 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer">←</button>
+                            <button aria-label="Página anterior" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer"><Icon nombre="atras" size={18} /></button>
                             <span className="text-texto-secundario text-sm">Página {pagina} de {totalPaginas}</span>
-                            <button disabled={pagina === totalPaginas} onClick={() => setPagina(p => p + 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer">→</button>
+                            <button aria-label="Página siguiente" disabled={pagina === totalPaginas} onClick={() => setPagina(p => p + 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer"><Icon nombre="adelante" size={18} /></button>
                         </div>
                     )}
                 </>

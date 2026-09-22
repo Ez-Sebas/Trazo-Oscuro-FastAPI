@@ -1,3 +1,5 @@
+import { Icon } from './Icon.jsx'
+
 export const Modal = ({ abierto, onCerrar, titulo, children, maxWidth = 'max-w-lg' }) => {
     if (!abierto) return null
 
@@ -15,7 +17,7 @@ export const Modal = ({ abierto, onCerrar, titulo, children, maxWidth = 'max-w-l
                     className="absolute top-4 right-4 text-texto-secundario hover:text-acento text-xl cursor-pointer"
                     aria-label="Cerrar"
                 >
-                    ✕
+                    <Icon nombre="cerrarMenu" size={18} />
                 </button>
                 {titulo && (
                     <h2 className="text-texto font-serif text-xl sm:text-2xl mb-6 text-center">

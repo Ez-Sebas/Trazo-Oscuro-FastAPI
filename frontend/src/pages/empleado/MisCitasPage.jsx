@@ -1,15 +1,30 @@
-import { useState, useEffect } from 'react'
-import { obtenerMisCitasEmpleado, actualizarEstadoCita } from '../../services/citaService.js'
+import { useState, useEffect, useCallback } from 'react'
+import { obtenerMisCitasEmpleado, actualizarEstadoCita, actualizarPagoCita } from '../../services/citaService.js'
+import { construirUrlArchivo } from '../../services/api.js'
+import { Badge, BadgePago } from '../../components/ui/Badge.jsx'
+import { Icon } from '../../components/ui/Icon.jsx'
 
-const estadosCita = ['pendiente', 'confirmada', 'realizada', 'cancelada']
+const ESTADOS_EDITABLES = ['confirmada', 'realizada', 'cancelada']
+
+// Un empleado no puede confirmar una cita: eso lo hace el cliente desde el
+// enlace del correo. La opción solo aparece si ya es el estado actual.
+const estadosDisponibles = (estadoActual) =>
+    ESTADOS_EDITABLES.filter((estado) => estado !== 'confirmada' || estado === estadoActual)
+
+const pesos = (valor) => `$${Number(valor || 0).toLocaleString('es-CO')}`
+
+/** Concuerda el sustantivo con el número: 1 cita · 3 citas. */
+const plural = (cantidad, singular, plural_) => `${cantidad} ${cantidad === 1 ? singular : plural_}`
 
 export const MisCitasPage = () => {
     const [citas, setCitas] = useState([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
+    const [guardandoId, setGuardandoId] = useState(null)
+    const [filtroEstado, setFiltroEstado] = useState('')
+    const [filtroPago, setFiltroPago] = useState('')
 
-    const cargar = async () => {
-        setCargando(true)
+    const cargar = useCallback(async () => {
         setError('')
         try {
             const data = await obtenerMisCitasEmpleado()
@@ -19,59 +34,186 @@ export const MisCitasPage = () => {
         } finally {
             setCargando(false)
         }
-    }
+    }, [])
 
-    useEffect(() => { cargar() }, [])
+    useEffect(() => {
+        const timer = setTimeout(cargar, 0)
+        return () => clearTimeout(timer)
+    }, [cargar])
 
-    const cambiarEstado = async (id, estado) => {
+    const cambiarEstado = async (idCita, estado) => {
+        setGuardandoId(idCita)
+        setError('')
         try {
-            await actualizarEstadoCita(id, estado)
-            cargar()
+            await actualizarEstadoCita(idCita, estado)
+            await cargar()
         } catch (err) {
-            alert(err.message)
+            setError(err.message)
+        } finally {
+            setGuardandoId(null)
         }
     }
 
-    return (
-        <div>
-            <h1 className="text-texto font-serif text-2xl mb-2">Mis Citas</h1>
-            <p className="text-texto-secundario text-sm mb-6">
-                Aquí solo ves las citas asignadas a ti. El backend decide esto según tu sesión (JWT), nunca según un dato enviado desde el navegador — así ningún empleado puede ver ni tocar citas de otro.
-            </p>
+    const alternarPago = async (cita) => {
+        setGuardandoId(cita.id_cita)
+        setError('')
+        try {
+            await actualizarPagoCita(cita.id_cita, cita.estado_pago === 'pagada' ? 'pendiente' : 'pagada')
+            await cargar()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setGuardandoId(null)
+        }
+    }
 
-            {cargando && <p className="text-texto-secundario">Cargando citas...</p>}
+    const citasFiltradas = citas.filter((cita) =>
+        (!filtroEstado || cita.estado === filtroEstado) &&
+        (!filtroPago || cita.estado_pago === filtroPago)
+    )
+
+    const porCobrar = citas.filter((c) => c.estado_pago === 'pendiente' && c.estado !== 'cancelada').length
+
+    return (
+        <div className="max-w-6xl">
+            <div className="mb-8">
+                <p className="eyebrow mb-3">Agenda personal</p>
+                <h1 className="editorial-title text-texto text-3xl sm:text-4xl mb-3">Mis citas</h1>
+                <p className="text-texto-secundario text-sm max-w-2xl">
+                    Solo ves las citas asignadas a ti. Una cita <strong className="text-texto">pendiente</strong> espera
+                    a que el cliente la confirme desde su correo; a partir de ahí puedes avanzar su estado y registrar
+                    el cobro del servicio, que se recibe en el estudio.
+                </p>
+            </div>
+
+            <div className="panel p-4 sm:p-5 mb-6">
+                <div className="flex items-center gap-2 mb-4 text-texto-secundario text-xs uppercase tracking-[0.14em]">
+                    <Icon nombre="filtro" size={16} /> Filtrar mis citas
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div>
+                        <label htmlFor="mis-citas-estado" className="field-label">Estado de la cita</label>
+                        <select id="mis-citas-estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className="field field-select">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">pendiente</option>
+                            {ESTADOS_EDITABLES.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="mis-citas-pago" className="field-label">Estado de pago</label>
+                        <select id="mis-citas-pago" value={filtroPago} onChange={(e) => setFiltroPago(e.target.value)} className="field field-select">
+                            <option value="">Pagadas y por cobrar</option>
+                            <option value="pagada">Solo pagadas</option>
+                            <option value="pendiente">Solo por cobrar</option>
+                        </select>
+                    </div>
+                    <div className="kpi-card flex flex-col justify-center">
+                        <p className="text-texto-secundario text-[10px] font-bold tracking-[0.16em] uppercase">Por cobrar</p>
+                        <p className="text-texto text-xl font-serif mt-1">{plural(porCobrar, 'cita', 'citas')}</p>
+                    </div>
+                </div>
+            </div>
 
             {error && (
-                <div className="bg-superficie border border-borde rounded-lg p-6 text-center">
-                    <p className="text-texto-secundario text-sm">
-                        Aún no hay conexión con el módulo de citas en el backend. Esta pantalla ya está lista para
-                        funcionar apenas se implemente el endpoint <code className="text-acento">/citas/empleado/mis-citas</code>.
-                    </p>
+                <p role="alert" className="panel border-acento/50 bg-acento/10 text-acento-suave text-sm p-4 mb-6">{error}</p>
+            )}
+
+            {cargando && <p className="text-texto-secundario text-sm">Cargando citas...</p>}
+
+            {!cargando && citas.length === 0 && (
+                <div className="panel p-8 text-center">
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-full border border-borde text-texto-secundario flex items-center justify-center">
+                        <Icon nombre="citas" size={24} />
+                    </div>
+                    <h2 className="text-texto font-serif text-xl mb-2">No tienes citas asignadas</h2>
+                    <p className="text-texto-secundario text-sm">Cuando el administrador te asigne una cita, aparecerá aquí.</p>
                 </div>
             )}
 
-            {!cargando && !error && citas.length === 0 && (
-                <p className="text-texto-secundario">No tienes citas asignadas por ahora.</p>
+            {!cargando && citas.length > 0 && citasFiltradas.length === 0 && (
+                <p className="panel p-8 text-center text-texto-secundario text-sm">
+                    No hay citas que coincidan con los filtros seleccionados.
+                </p>
             )}
 
-            {!cargando && !error && citas.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {citas.map((c) => (
-                        <div key={c.id_cita} className="bg-superficie rounded-lg p-4">
-                            <h3 className="text-texto font-medium">{c.servicio_nombre}</h3>
-                            <p className="text-texto-secundario text-sm">Cliente: {c.cliente_nombre}</p>
-                            <p className="text-texto-secundario text-sm mb-2">{c.fecha}</p>
-                            <p className="text-texto-secundario text-sm mb-2">{c.hora}</p>
-                            <select
-                                value={c.estado}
-                                onChange={(e) => cambiarEstado(c.id_cita, e.target.value)}
-                                className="bg-fondo border border-borde rounded px-2 py-1 text-texto text-xs"
-                            >
-                                {estadosCita.map((estado) => (
-                                    <option key={estado} value={estado}>{estado}</option>
-                                ))}
-                            </select>
-                        </div>
+            {citasFiltradas.length > 0 && (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {citasFiltradas.map((cita) => (
+                        <article
+                            key={cita.id_cita}
+                            className={`panel p-5 space-y-4 transition-opacity ${guardandoId === cita.id_cita ? 'opacity-50' : ''}`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-acento-suave text-[10px] font-bold tracking-[0.18em] uppercase">Cita #{cita.id_cita}</p>
+                                    <h2 className="text-texto font-serif text-xl mt-1">{cita.servicio_nombre}</h2>
+                                    <p className="text-texto-secundario text-sm mt-1">{pesos(cita.servicio_precio)}</p>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                    <Badge estado={cita.estado} />
+                                    <BadgePago estadoPago={cita.estado_pago} />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 border-t border-borde/70 pt-4">
+                                <div>
+                                    <p className="text-texto-secundario text-[10px] uppercase tracking-wider">Cliente</p>
+                                    <p className="text-texto text-sm mt-1">{cita.cliente_nombre}</p>
+                                </div>
+                                <div>
+                                    <p className="text-texto-secundario text-[10px] uppercase tracking-wider">Fecha y hora</p>
+                                    <p className="text-texto text-sm mt-1">{cita.fecha} · {cita.hora}</p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-borde/70 pt-4">
+                                <p className="text-texto-secundario text-[10px] uppercase tracking-wider mb-1">Descripción del cliente</p>
+                                <p className="text-texto-secundario text-sm leading-6">{cita.mensaje || 'Sin descripción'}</p>
+                            </div>
+
+                            {cita.imagen_diseno && (
+                                <img
+                                    src={construirUrlArchivo(cita.imagen_diseno)}
+                                    alt={`Referencia de diseño enviada por ${cita.cliente_nombre}`}
+                                    className="w-full max-h-64 rounded-lg border border-borde object-cover"
+                                />
+                            )}
+
+                            {cita.estado === 'pendiente' ? (
+                                <p className="text-texto-secundario text-xs border-l-2 border-acento pl-3">
+                                    Esperando que el cliente confirme la cita desde su correo.
+                                </p>
+                            ) : (
+                                <div className="grid gap-3 sm:grid-cols-2 border-t border-borde/70 pt-4">
+                                    <label className="block">
+                                        <span className="field-label">Estado de la cita</span>
+                                        <select
+                                            value={cita.estado}
+                                            disabled={guardandoId === cita.id_cita}
+                                            onChange={(e) => cambiarEstado(cita.id_cita, e.target.value)}
+                                            className="field field-select"
+                                        >
+                                            {estadosDisponibles(cita.estado).map((estado) => (
+                                                <option key={estado} value={estado}>{estado}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <div>
+                                        <span className="field-label">Cobro del servicio</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => alternarPago(cita)}
+                                            disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
+                                            className="w-full flex items-center justify-center gap-2 border border-borde rounded-lg py-2.5 text-xs text-texto-secundario hover:border-acento hover:text-acento transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Icon nombre="check" size={14} />
+                                            {cita.estado_pago === 'pagada' ? 'Marcar como por cobrar' : 'Marcar como pagada'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </article>
                     ))}
                 </div>
             )}

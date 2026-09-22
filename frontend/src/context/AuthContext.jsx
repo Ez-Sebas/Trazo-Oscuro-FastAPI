@@ -11,21 +11,23 @@ export const AuthProvider = ({ children }) => {
     })
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            const token =
+                localStorage.getItem('trazo_token') ||
+                sessionStorage.getItem('trazo_token')
 
-        const token =
-            localStorage.getItem('trazo_token') ||
-            sessionStorage.getItem('trazo_token')
+            const usuarioGuardado =
+                localStorage.getItem('trazo_usuario') ||
+                sessionStorage.getItem('trazo_usuario')
 
-        const usuarioGuardado =
-            localStorage.getItem('trazo_usuario') ||
-            sessionStorage.getItem('trazo_usuario')
+            setEstadoAuth({
+                usuario: usuarioGuardado ? JSON.parse(usuarioGuardado) : null,
+                token: token || null,
+                cargando: false,
+            })
+        }, 0)
 
-        setEstadoAuth({
-            usuario: usuarioGuardado ? JSON.parse(usuarioGuardado) : null,
-            token: token || null,
-            cargando: false,
-        })
-
+        return () => clearTimeout(timer)
     }, [])
 
     const iniciarSesion = (usuario, token, recordarme) => {

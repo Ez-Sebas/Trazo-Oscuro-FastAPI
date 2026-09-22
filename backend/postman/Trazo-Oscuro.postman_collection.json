@@ -1,0 +1,2527 @@
+{
+  "info": {
+    "name": "Trazo Oscuro — API FastAPI",
+    "description": "Colección de pruebas de la API del proyecto Trazo Oscuro.\n\nAprendiz: Sebastián Zuleta Echavarría · Ficha 3406211\n\nCÓMO USARLA\n1. Comprobar que la variable `base_url` apunta al servidor (por defecto http://127.0.0.1:8000).\n2. Ejecutar 'Autenticación → Login'. El token se guarda solo en la variable de colección `token`.\n3. El resto de peticiones ya lo envían en la cabecera Authorization.\n\nLos parámetros de consulta vienen desactivados: se activan los que se quieran probar.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "prueba-postman-001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticación",
+      "description": "Inicio de sesión con JWT, recuperación y restablecimiento de contraseña.",
+      "item": [
+        {
+          "name": "Login (guarda el token automáticamente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Iniciar Sesion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@trazooscuro.com\",\n  \"password\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "pm.test('Inicio de sesión correcto', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve un token', () => pm.expect(datos.token).to.be.a('string'));",
+                  "pm.collectionVariables.set('token', datos.token);",
+                  "console.log('Token guardado para el resto de peticiones.');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/recuperar-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/recuperar-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "recuperar-password"
+              ]
+            },
+            "description": "Solicitar Recuperacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente@ejemplo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/auth/restablecer-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/restablecer-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "restablecer-password"
+              ]
+            },
+            "description": "Restablecer Password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{token_recuperacion}}\",\n  \"password\": \"NuevaClave123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "description": "Registro público, perfil propio y CRUD administrativo de usuarios.",
+      "item": [
+        {
+          "name": "DELETE /api/usuarios/{id_usuario}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/:id_usuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                ":id_usuario"
+              ],
+              "variable": [
+                {
+                  "key": "id_usuario",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Eliminar Usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "Listar Usuarios"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/usuarios/clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/clientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "clientes"
+              ]
+            },
+            "description": "Listar Clientes"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/usuarios/empleados/activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/empleados/activos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "empleados",
+                "activos"
+              ]
+            },
+            "description": "Listar Empleados Activos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/usuarios/perfil/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/perfil/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "perfil",
+                "me"
+              ]
+            },
+            "description": "Obtener Mi Perfil"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/usuarios/{id_usuario}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/:id_usuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                ":id_usuario"
+              ],
+              "variable": [
+                {
+                  "key": "id_usuario",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/usuarios/{id_usuario}/estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/:id_usuario/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                ":id_usuario",
+                "estado"
+              ],
+              "variable": [
+                {
+                  "key": "id_usuario",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Estado Usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/usuarios/{id_usuario}/rol",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/:id_usuario/rol",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                ":id_usuario",
+                "rol"
+              ],
+              "variable": [
+                {
+                  "key": "id_usuario",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Rol Usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/usuarios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "Crear Usuario Admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/usuarios/registro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/registro",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "registro"
+              ]
+            },
+            "description": "Registrar Usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Ana\",\n  \"apellidos\": \"Gómez\",\n  \"tipo_documento\": \"CC\",\n  \"numero_documento\": \"1029384756\",\n  \"direccion\": \"Calle 50 #20-10\",\n  \"telefono\": \"3009998877\",\n  \"email\": \"ana@ejemplo.com\",\n  \"password\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/usuarios/perfil/me",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/perfil/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "perfil",
+                "me"
+              ]
+            },
+            "description": "Actualizar Mi Perfil",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/usuarios/{id_usuario}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/:id_usuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                ":id_usuario"
+              ],
+              "variable": [
+                {
+                  "key": "id_usuario",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Editar Usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "description": "Catálogo de productos y su gestión (CRUD completo).",
+      "item": [
+        {
+          "name": "DELETE /api/productos/{id_producto}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/productos/:id_producto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                ":id_producto"
+              ],
+              "variable": [
+                {
+                  "key": "id_producto",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Eliminar Producto"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/productos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_categoria_producto",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_min",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_max",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "por_pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Productos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/productos/activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/productos/activos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "activos"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_categoria_producto",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_min",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_max",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Productos Activos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/productos/categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/productos/categorias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "categorias"
+              ]
+            },
+            "description": "Listar Categorias Producto"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/productos/{id_producto}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/productos/:id_producto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                ":id_producto"
+              ],
+              "variable": [
+                {
+                  "key": "id_producto",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Producto"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/productos/{id_producto}/estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/productos/:id_producto/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                ":id_producto",
+                "estado"
+              ],
+              "variable": [
+                {
+                  "key": "id_producto",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Estado Producto",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/productos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/productos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "Crear Producto",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/productos/{id_producto}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/productos/:id_producto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                ":id_producto"
+              ],
+              "variable": [
+                {
+                  "key": "id_producto",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Editar Producto",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Servicios",
+      "description": "Catálogo de servicios de tatuaje y su gestión (CRUD completo).",
+      "item": [
+        {
+          "name": "DELETE /api/servicios/{id_servicio}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/:id_servicio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                ":id_servicio"
+              ],
+              "variable": [
+                {
+                  "key": "id_servicio",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Eliminar Servicio"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/servicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/servicios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_categoria_servicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_min",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_max",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "por_pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Servicios"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/servicios/activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/activos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                "activos"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_categoria_servicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_min",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "precio_max",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Servicios Activos"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/servicios/categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/categorias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                "categorias"
+              ]
+            },
+            "description": "Listar Categorias Servicio"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/servicios/{id_servicio}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/:id_servicio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                ":id_servicio"
+              ],
+              "variable": [
+                {
+                  "key": "id_servicio",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Servicio"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/servicios/{id_servicio}/estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/:id_servicio/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                ":id_servicio",
+                "estado"
+              ],
+              "variable": [
+                {
+                  "key": "id_servicio",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Estado Servicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/servicios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/servicios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios"
+              ]
+            },
+            "description": "Crear Servicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/servicios/{id_servicio}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/servicios/:id_servicio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "servicios",
+                ":id_servicio"
+              ],
+              "variable": [
+                {
+                  "key": "id_servicio",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Editar Servicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Citas",
+      "description": "Reserva, confirmación por correo, cambio de estado y registro del cobro.",
+      "item": [
+        {
+          "name": "GET /api/citas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/citas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas"
+              ]
+            },
+            "description": "Listar Todas Las Citas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/citas/empleado/mis-citas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/citas/empleado/mis-citas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                "empleado",
+                "mis-citas"
+              ]
+            },
+            "description": "Obtener Mis Citas Empleado"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/citas/mis-citas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/citas/mis-citas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                "mis-citas"
+              ]
+            },
+            "description": "Obtener Mis Citas Cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/citas/{id_cita}/asignar-empleado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/citas/:id_cita/asignar-empleado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                ":id_cita",
+                "asignar-empleado"
+              ],
+              "variable": [
+                {
+                  "key": "id_cita",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Asignar Empleado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/citas/{id_cita}/cancelar-mia",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/citas/:id_cita/cancelar-mia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                ":id_cita",
+                "cancelar-mia"
+              ],
+              "variable": [
+                {
+                  "key": "id_cita",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cancelar Mi Cita"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/citas/{id_cita}/estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/citas/:id_cita/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                ":id_cita",
+                "estado"
+              ],
+              "variable": [
+                {
+                  "key": "id_cita",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Estado Cita",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/citas/{id_cita}/pago",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/citas/:id_cita/pago",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                ":id_cita",
+                "pago"
+              ],
+              "variable": [
+                {
+                  "key": "id_cita",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cambiar Estado Pago Cita",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/citas",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/citas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas"
+              ]
+            },
+            "description": "Crear Cita",
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/citas/confirmar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/citas/confirmar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "citas",
+                "confirmar"
+              ]
+            },
+            "description": "Confirmar Cita",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ventas",
+      "description": "Checkout con Stripe, ventas de mostrador e historial con filtros.",
+      "item": [
+        {
+          "name": "GET /api/ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_inicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_fin",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_cliente",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "item",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "valor_min",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "valor_max",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "por_pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Ventas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/ventas/mis-ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/mis-ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "mis-ventas"
+              ]
+            },
+            "description": "Obtener Mis Ventas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/ventas/verificar-pago/{session_id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/verificar-pago/:session_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "verificar-pago",
+                ":session_id"
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Verificar Pago"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/ventas/{id_venta}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/:id_venta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                ":id_venta"
+              ],
+              "variable": [
+                {
+                  "key": "id_venta",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Venta"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/ventas/{id_venta}/cancelar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/:id_venta/cancelar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                ":id_venta",
+                "cancelar"
+              ],
+              "variable": [
+                {
+                  "key": "id_venta",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cancelar Venta"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/ventas/{id_venta}/entregar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/:id_venta/entregar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                ":id_venta",
+                "entregar"
+              ],
+              "variable": [
+                {
+                  "key": "id_venta",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Entregar Venta"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ventas/checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "checkout"
+              ]
+            },
+            "description": "Crear Checkout",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"tipo_item\": \"producto\",\n      \"id_producto\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ventas/mostrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/mostrador",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "mostrador"
+              ]
+            },
+            "description": "Crear Venta Mostrador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": 3,\n  \"origen\": \"mostrador\",\n  \"descuento\": 0,\n  \"items\": [\n    {\n      \"tipo_item\": \"producto\",\n      \"id_producto\": 1,\n      \"cantidad\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ventas/stripe/webhook",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ventas/stripe/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "stripe",
+                "webhook"
+              ]
+            },
+            "description": "Stripe Webhook"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Facturas",
+      "description": "Generación, consulta, descarga en PDF y anulación de facturas.",
+      "item": [
+        {
+          "name": "GET /api/facturas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas"
+              ],
+              "query": [
+                {
+                  "key": "numero_factura",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "cliente",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_cliente",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_inicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_fin",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "por_pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Facturas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/facturas/mis-facturas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas/mis-facturas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas",
+                "mis-facturas"
+              ]
+            },
+            "description": "Obtener Mis Facturas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/facturas/{id_factura}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas/:id_factura",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas",
+                ":id_factura"
+              ],
+              "variable": [
+                {
+                  "key": "id_factura",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Factura"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/facturas/{id_factura}/pdf",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas/:id_factura/pdf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas",
+                ":id_factura",
+                "pdf"
+              ],
+              "variable": [
+                {
+                  "key": "id_factura",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Descargar Factura Pdf"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/facturas/{id_factura}/anular",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas/:id_factura/anular",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas",
+                ":id_factura",
+                "anular"
+              ],
+              "variable": [
+                {
+                  "key": "id_factura",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Anular Factura"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/facturas/generar/{id_venta}",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/facturas/generar/:id_venta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "facturas",
+                "generar",
+                ":id_venta"
+              ],
+              "variable": [
+                {
+                  "key": "id_venta",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Generar Factura"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "description": "Reporte diario de ventas en JSON, PDF y Excel.",
+      "item": [
+        {
+          "name": "GET /api/reportes/ventas-diarias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/ventas-diarias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "ventas-diarias"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Reporte Ventas Diarias"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/reportes/ventas-diarias/excel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/ventas-diarias/excel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "ventas-diarias",
+                "excel"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Reporte Ventas Diarias Excel"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/reportes/ventas-diarias/pdf",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/ventas-diarias/pdf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "ventas-diarias",
+                "pdf"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Reporte Ventas Diarias Pdf"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Indicadores y series de datos para los gráficos, diferenciados por rol.",
+      "item": [
+        {
+          "name": "GET /api/dashboard/admin/resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/admin/resumen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "admin",
+                "resumen"
+              ]
+            },
+            "description": "Resumen Administrador"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/dashboard/citas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/citas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "citas"
+              ],
+              "query": [
+                {
+                  "key": "fecha_inicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_fin",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_servicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado_pago",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_empleado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_cliente",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "agrupacion",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Dashboard Citas"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/dashboard/cliente/resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/cliente/resumen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "cliente",
+                "resumen"
+              ]
+            },
+            "description": "Resumen Cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/dashboard/empleado/resumen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/empleado/resumen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "empleado",
+                "resumen"
+              ]
+            },
+            "description": "Resumen Empleado"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/dashboard/ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/ventas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "ventas"
+              ],
+              "query": [
+                {
+                  "key": "fecha_inicio",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "fecha_fin",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_producto",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "id_cliente",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "agrupacion",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Dashboard Ventas"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PQR",
+      "description": "Peticiones, quejas y reclamos: registro, respuesta y seguimiento.",
+      "item": [
+        {
+          "name": "GET /api/pqr",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pqr",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr"
+              ],
+              "query": [
+                {
+                  "key": "busqueda",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "tipo",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "estado",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "por_pagina",
+                  "value": "",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Listar Pqr"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/pqr/mis-pqr",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pqr/mis-pqr",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr",
+                "mis-pqr"
+              ]
+            },
+            "description": "Obtener Mis Pqr"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/pqr/{id_pqr}/cerrar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pqr/:id_pqr/cerrar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr",
+                ":id_pqr",
+                "cerrar"
+              ],
+              "variable": [
+                {
+                  "key": "id_pqr",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Cerrar Mi Pqr"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/pqr/{id_pqr}/en-proceso",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pqr/:id_pqr/en-proceso",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr",
+                ":id_pqr",
+                "en-proceso"
+              ],
+              "variable": [
+                {
+                  "key": "id_pqr",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Marcar En Proceso"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/pqr/{id_pqr}/responder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pqr/:id_pqr/responder",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr",
+                ":id_pqr",
+                "responder"
+              ],
+              "variable": [
+                {
+                  "key": "id_pqr",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Responder Pqr",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/pqr",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pqr",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pqr"
+              ]
+            },
+            "description": "Crear Pqr",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"queja\",\n  \"asunto\": \"Demora en la atención\",\n  \"descripcion\": \"Esperé 30 minutos más de lo acordado.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chatbot",
+      "description": "Asistente virtual con IA, historial de conversación y diagnóstico.",
+      "item": [
+        {
+          "name": "GET /api/chat/estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat/estado",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "estado"
+              ]
+            },
+            "description": "Estado Asistente"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/chat/historial/{session_id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat/historial/:session_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "historial",
+                ":session_id"
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "1",
+                  "description": "Identificador a consultar"
+                }
+              ]
+            },
+            "description": "Obtener Historial"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/chat/mensaje",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/mensaje",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "mensaje"
+              ]
+            },
+            "description": "Enviar Mensaje",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"mensaje\": \"¿Qué servicios tienen y cuánto cuestan?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": []
+            },
+            "description": "Inicio"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

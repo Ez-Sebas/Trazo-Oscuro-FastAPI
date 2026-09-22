@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Input } from '../components/ui/Input.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { restablecerPassword } from '../services/authService.js'
+import { Icon } from '../components/ui/Icon.jsx'
 
 export const RestablecerPassword = () => {
     const [searchParams] = useSearchParams()
@@ -69,7 +70,7 @@ export const RestablecerPassword = () => {
                     página de inicio de sesión.
                 </p>
                 <Link to="/login" className="text-acento text-sm hover:underline">
-                    Volver al inicio de sesión →
+                    <span className="inline-flex items-center gap-2">Volver al inicio de sesión <Icon nombre="adelante" size={15} /></span>
                 </Link>
             </div>
         )
@@ -138,7 +139,7 @@ export const RestablecerPassword = () => {
             </div>
 
             <Link to="/login" className="text-texto-secundario text-sm mt-6 hover:text-acento transition-colors">
-                ← Volver al inicio de sesión
+                <span className="inline-flex items-center gap-2"><Icon nombre="atras" size={15} /> Volver al inicio de sesión</span>
             </Link>
         </div>
     )

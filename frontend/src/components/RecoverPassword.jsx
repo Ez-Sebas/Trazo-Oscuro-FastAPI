@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Input } from './ui/Input.jsx'
 import { Button } from './ui/Button.jsx'
 import { solicitarRecuperacion } from '../services/authService.js'
+import { Icon } from './ui/Icon.jsx'
 
 export const RecoverPassword = ({ onVolver }) => {
     const [correo, setCorreo] = useState('')
@@ -85,7 +86,7 @@ export const RecoverPassword = ({ onVolver }) => {
                 onClick={onVolver}
                 className="text-acento text-sm mt-4 mx-auto block hover:underline cursor-pointer"
             >
-                ← Volver al inicio de sesión
+                <span className="inline-flex items-center gap-2"><Icon nombre="atras" size={15} /> Volver al inicio de sesión</span>
             </button>
         </div>
     )

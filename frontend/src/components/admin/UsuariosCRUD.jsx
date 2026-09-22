@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
     obtenerUsuarios,
     crearUsuarioAdmin,
@@ -10,6 +10,7 @@ import { Input } from '../ui/Input.jsx'
 import { Select } from '../ui/Select.jsx'
 import { Button } from '../ui/Button.jsx'
 import { Modal } from '../ui/Modal.jsx'
+import { Icon } from '../ui/Icon.jsx'
 
 const roles = [
     { value: 1, label: 'Administrador' },
@@ -37,7 +38,7 @@ export const UsuariosCRUD = () => {
     const [pagina, setPagina] = useState(1)
     const porPagina = 10
 
-    const cargar = async () => {
+    const cargar = useCallback(async () => {
         setCargando(true)
         try {
             const data = await obtenerUsuarios()
@@ -47,9 +48,12 @@ export const UsuariosCRUD = () => {
         } finally {
             setCargando(false)
         }
-    }
+    }, [])
 
-    useEffect(() => { cargar() }, [])
+    useEffect(() => {
+        const timer = setTimeout(cargar, 0)
+        return () => clearTimeout(timer)
+    }, [cargar])
 
     const validarCampo = (campo, valor) => {
         const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/
@@ -182,24 +186,30 @@ export const UsuariosCRUD = () => {
     const totalPaginas = Math.max(1, Math.ceil(usuariosFiltrados.length / porPagina))
     const usuariosPagina = usuariosFiltrados.slice((pagina - 1) * porPagina, pagina * porPagina)
 
+    const badgeEstado = (estado) => (
+        <span className={`px-2 py-1 rounded text-xs ${estado === 'activo' ? 'bg-acento/15 text-acento' : 'bg-borde/30 text-texto-secundario'}`}>
+            {estado}
+        </span>
+    )
+
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-texto font-serif text-lg">Usuarios registrados</h2>
-                <Button onClick={() => setMostrarForm(true)}>Agregar usuario</Button>
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5">
+                <div><p className="text-acento-suave text-[10px] font-bold tracking-[0.18em] uppercase">Directorio</p><h2 className="text-texto font-serif text-2xl mt-1">Usuarios registrados</h2></div>
+                <Button onClick={() => setMostrarForm(true)}><span className="inline-flex items-center gap-2"><Icon nombre="mas" size={16} /> Agregar usuario</span></Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.8fr_0.8fr] gap-3 mb-6 p-4 bg-superficie border border-borde rounded-2xl">
                 <input
                     value={busqueda}
                     onChange={(e) => { setBusqueda(e.target.value); setPagina(1) }}
                     placeholder="Buscar por nombre, correo, documento o ID..."
-                    className="flex-1 bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm focus:outline-none focus:border-acento"
+                    className="field"
                 />
                 <select
                     value={filtroRol}
                     onChange={(e) => { setFiltroRol(e.target.value); setPagina(1) }}
-                    className="bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    className="admin-select w-full px-3 py-2.5 text-texto text-sm"
                 >
                     <option value="">Todos los roles</option>
                     {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -207,7 +217,7 @@ export const UsuariosCRUD = () => {
                 <select
                     value={filtroEstado}
                     onChange={(e) => { setFiltroEstado(e.target.value); setPagina(1) }}
-                    className="bg-fondo border border-borde rounded-md px-3 py-2 text-texto text-sm"
+                    className="admin-select w-full px-3 py-2.5 text-texto text-sm"
                 >
                     <option value="">Todos los estados</option>
                     <option value="activo">Activo</option>
@@ -243,7 +253,7 @@ export const UsuariosCRUD = () => {
                         <Input label="Contraseña" name="password" type="password" value={nuevo.password} onChange={(e) => manejarCambio('password', e.target.value)} error={errores.password} maxLength={72} />
                         <Select label="Rol" name="id_rol" value={nuevo.id_rol} onChange={(e) => setNuevo({ ...nuevo, id_rol: e.target.value })} options={roles} />
                     </div>
-                    <Button type="submit">Crear usuario</Button>
+                    <Button type="submit"><span className="inline-flex items-center gap-2"><Icon nombre="mas" size={16} /> Crear usuario</span></Button>
                 </form>
             </Modal>
 
@@ -251,75 +261,120 @@ export const UsuariosCRUD = () => {
                 <p className="text-texto-secundario">Cargando usuarios...</p>
             ) : (
                 <>
-                    <div className="overflow-x-auto bg-fondo rounded-lg p-4">
-                        <table className="w-full text-sm text-left">
+                    {/* Tabla en pantallas md+ */}
+                    <div className="admin-table-shell hidden md:block overflow-x-auto">
+                        <table className="admin-table w-full min-w-190 text-sm text-left">
                             <thead>
-                                <tr className="text-texto-secundario border-b border-borde">
-                                    <th className="p-2">Nombre</th>
-                                    <th className="p-2">Documento</th>
-                                    <th className="p-2">Correo</th>
-                                    <th className="p-2">Rol</th>
-                                    <th className="p-2">Estado</th>
-                                    <th className="p-2">Acciones</th>
+                                <tr>
+                                    <th className="px-4 py-3">Nombre</th>
+                                    <th className="px-4 py-3">Documento</th>
+                                    <th className="px-4 py-3">Correo</th>
+                                    <th className="px-4 py-3">Rol</th>
+                                    <th className="px-4 py-3">Estado</th>
+                                    <th className="px-4 py-3">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {usuariosPagina.map((u) => (
-                                    <tr key={u.id_usuario} className="border-b border-borde/50 align-top">
+                                    <tr key={u.id_usuario} className="align-top">
                                         {editando === u.id_usuario ? (
                                             <>
-                                                <td className="p-2 text-texto">{u.nombres} {u.apellidos}</td>
-                                                <td className="p-2 text-texto-secundario">{u.tipo_documento} {u.numero_documento}</td>
-                                                <td className="p-2 text-texto-secundario">{u.email}</td>
-                                                <td className="p-2">
+                                                <td className="px-4 py-3 text-texto">{u.nombres} {u.apellidos}</td>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.tipo_documento} {u.numero_documento}</td>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.email}</td>
+                                                <td className="px-4 py-3">
                                                     <select
-                                                        className="bg-superficie border border-borde rounded px-2 py-1 text-texto"
+                                                        className="admin-select px-2 py-1 text-texto"
                                                         value={formEdicion.id_rol}
                                                         onChange={(e) => setFormEdicion({ ...formEdicion, id_rol: e.target.value })}
                                                     >
                                                         {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                                                     </select>
                                                 </td>
-                                                <td className="p-2 text-texto-secundario">{u.estado}</td>
-                                                <td className="p-2 flex gap-2">
-                                                    <button onClick={() => guardarEdicion(u.id_usuario)} className="text-acento hover:underline cursor-pointer">Guardar</button>
-                                                    <button onClick={() => setEditando(null)} className="text-texto-secundario hover:underline cursor-pointer">Cancelar</button>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.estado}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => guardarEdicion(u.id_usuario)} className="inline-flex items-center gap-1.5 text-acento hover:underline cursor-pointer"><Icon nombre="check" size={14} /> Guardar</button>
+                                                        <button onClick={() => setEditando(null)} className="inline-flex items-center gap-1.5 text-texto-secundario hover:underline cursor-pointer"><Icon nombre="cerrarMenu" size={14} /> Cancelar</button>
+                                                    </div>
                                                 </td>
                                             </>
                                         ) : (
                                             <>
-                                                <td className="p-2 text-texto">{u.nombres} {u.apellidos}</td>
-                                                <td className="p-2 text-texto-secundario">{u.tipo_documento} {u.numero_documento}</td>
-                                                <td className="p-2 text-texto-secundario">{u.email}</td>
-                                                <td className="p-2 text-texto-secundario">{u.rol}</td>
-                                                <td className="p-2">
-                                                    <span className={`px-2 py-1 rounded text-xs ${u.estado === 'activo' ? 'bg-acento/15 text-acento' : 'bg-borde/30 text-texto-secundario'}`}>
-                                                        {u.estado}
-                                                    </span>
-                                                </td>
-                                                <td className="p-2 flex gap-3">
-                                                    <button onClick={() => iniciarEdicion(u)} className="text-texto-secundario hover:text-acento cursor-pointer">Editar rol</button>
-                                                    <button onClick={() => alternarEstado(u)} className="text-texto-secundario hover:text-acento cursor-pointer">
-                                                        {u.estado === 'activo' ? 'Desactivar' : 'Activar'}
-                                                    </button>
-                                                    <button onClick={() => eliminar(u.id_usuario)} className="text-red-500 hover:underline cursor-pointer">Eliminar</button>
+                                                <td className="px-4 py-3 text-texto">{u.nombres} {u.apellidos}</td>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.tipo_documento} {u.numero_documento}</td>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.email}</td>
+                                                <td className="px-4 py-3 text-texto-secundario">{u.rol}</td>
+                                                <td className="px-4 py-3">{badgeEstado(u.estado)}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => iniciarEdicion(u)} className="inline-flex items-center gap-1.5 text-texto-secundario hover:text-acento cursor-pointer"><Icon nombre="editar" size={14} /> Editar rol</button>
+                                                        <button onClick={() => alternarEstado(u)} className="text-texto-secundario hover:text-acento cursor-pointer">
+                                                            <span className="inline-flex items-center gap-1.5"><Icon nombre={u.estado === 'activo' ? 'cerrar' : 'check'} size={14} /> {u.estado === 'activo' ? 'Desactivar' : 'Activar'}</span>
+                                                        </button>
+                                                        <button onClick={() => eliminar(u.id_usuario)} className="inline-flex items-center gap-1.5 text-red-500 hover:underline cursor-pointer"><Icon nombre="eliminar" size={14} /> Eliminar</button>
+                                                    </div>
                                                 </td>
                                             </>
                                         )}
                                     </tr>
                                 ))}
                                 {usuariosPagina.length === 0 && (
-                                    <tr><td colSpan={6} className="p-4 text-center text-texto-secundario">Sin resultados.</td></tr>
+                                    <tr><td colSpan={6} className="px-4 py-6 text-center text-texto-secundario">Sin resultados.</td></tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
 
+                    {/* Tarjetas en pantallas pequeñas */}
+                    <div className="md:hidden flex flex-col gap-3">
+                        {usuariosPagina.length === 0 && (
+                            <p className="text-center text-texto-secundario py-6">Sin resultados.</p>
+                        )}
+                        {usuariosPagina.map((u) => (
+                            <div key={u.id_usuario} className="bg-superficie border border-borde rounded-2xl p-4 flex flex-col gap-3 hover:border-acento/60 transition-colors">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                        <p className="text-texto font-medium">{u.nombres} {u.apellidos}</p>
+                                        <p className="text-texto-secundario text-xs mt-0.5">{u.email}</p>
+                                    </div>
+                                    {badgeEstado(u.estado)}
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-texto-secundario">
+                                    <span>{u.tipo_documento} {u.numero_documento}</span>
+                                    <span>{u.rol}</span>
+                                </div>
+
+                                {editando === u.id_usuario ? (
+                                    <div className="flex items-center gap-2 pt-2 border-t border-borde">
+                                        <select
+                                            className="admin-select px-2 py-1 text-texto text-sm flex-1"
+                                            value={formEdicion.id_rol}
+                                            onChange={(e) => setFormEdicion({ ...formEdicion, id_rol: e.target.value })}
+                                        >
+                                            {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                        </select>
+                                        <button onClick={() => guardarEdicion(u.id_usuario)} className="inline-flex items-center gap-1.5 text-acento text-sm hover:underline cursor-pointer"><Icon nombre="check" size={14} /> Guardar</button>
+                                        <button onClick={() => setEditando(null)} className="inline-flex items-center gap-1.5 text-texto-secundario text-sm hover:underline cursor-pointer"><Icon nombre="cerrarMenu" size={14} /> Cancelar</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2 border-t border-borde text-sm">
+                                        <button onClick={() => iniciarEdicion(u)} className="inline-flex items-center gap-1.5 text-texto-secundario hover:text-acento cursor-pointer"><Icon nombre="editar" size={14} /> Editar rol</button>
+                                        <button onClick={() => alternarEstado(u)} className="text-texto-secundario hover:text-acento cursor-pointer">
+                                            <span className="inline-flex items-center gap-1.5"><Icon nombre={u.estado === 'activo' ? 'cerrar' : 'check'} size={14} /> {u.estado === 'activo' ? 'Desactivar' : 'Activar'}</span>
+                                        </button>
+                                        <button onClick={() => eliminar(u.id_usuario)} className="inline-flex items-center gap-1.5 text-red-500 hover:underline cursor-pointer"><Icon nombre="eliminar" size={14} /> Eliminar</button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
                     {totalPaginas > 1 && (
                         <div className="flex justify-center items-center gap-3 mt-4">
-                            <button disabled={pagina === 1} onClick={() => setPagina(p => p - 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer">←</button>
+                            <button aria-label="Página anterior" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer"><Icon nombre="atras" size={18} /></button>
                             <span className="text-texto-secundario text-sm">Página {pagina} de {totalPaginas}</span>
-                            <button disabled={pagina === totalPaginas} onClick={() => setPagina(p => p + 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer">→</button>
+                            <button aria-label="Página siguiente" disabled={pagina === totalPaginas} onClick={() => setPagina(p => p + 1)} className="text-texto-secundario disabled:opacity-30 cursor-pointer"><Icon nombre="adelante" size={18} /></button>
                         </div>
                     )}
                 </>

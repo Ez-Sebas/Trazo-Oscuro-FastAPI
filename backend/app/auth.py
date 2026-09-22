@@ -115,3 +115,45 @@ def requerir_roles(*roles_permitidos: str):
         return usuario
 
     return verificador
+
+
+def crear_token_confirmacion_cita(id_cita: int) -> str:
+    to_encode = {"sub": str(id_cita), "tipo": "confirmacion_cita"}
+    expira = datetime.utcnow() + timedelta(hours=48)
+    to_encode.update({"exp": expira})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verificar_token_confirmacion_cita(token: str) -> int:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("tipo") != "confirmacion_cita":
+            raise HTTPException(status_code=400, detail="Token inválido.")
+        return int(payload.get("sub"))
+    except JWTError:
+        raise HTTPException(status_code=400, detail="El enlace no es válido o ya expiró.")
+    
+
+def obtener_usuario_actual_opcional(
+    credenciales: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    db: Session = Depends(get_db),
+) -> Optional[Usuario]:
+    """
+    Igual que obtener_usuario_actual, pero NUNCA lanza error si no hay sesión
+    o el token es inválido — simplemente devuelve None. Se usa en endpoints
+    públicos que quieren personalizarse SI el visitante está logueado.
+    """
+    if credenciales is None:
+        return None
+    try:
+        payload = jwt.decode(credenciales.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        id_usuario = payload.get("sub")
+        if id_usuario is None:
+            return None
+    except JWTError:
+        return None
+
+    usuario = db.query(Usuario).filter(Usuario.id_usuario == int(id_usuario)).first()
+    if usuario is None or usuario.estado == "inactivo":
+        return None
+    return usuario

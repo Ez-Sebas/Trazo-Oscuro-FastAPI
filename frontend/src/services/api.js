@@ -1,5 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 
+export const construirUrlArchivo = (ruta) => {
+    if (!ruta) return ''
+    if (ruta.startsWith('http')) return ruta
+    return `${API_URL.replace(/\/api\/?$/, '')}${ruta}`
+}
+
 const extraerMensajeError = (data) => {
     if (typeof data.detail === 'string') return data.detail
 
@@ -39,4 +45,25 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
 
     return data
+}
+
+export const apiFetchBlob = async (endpoint) => {
+    const token = localStorage.getItem('trazo_token') || sessionStorage.getItem('trazo_token')
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    if (!response.ok) {
+        let mensaje = 'No fue posible descargar el archivo.'
+        try {
+            const data = await response.json()
+            mensaje = extraerMensajeError(data)
+        } catch {
+            // sin cuerpo JSON, se usa el mensaje genérico
+        }
+        throw new Error(mensaje)
+    }
+
+    return response.blob()
 }

@@ -6,29 +6,39 @@ const CartContext = createContext()
 const claveCarrito = (idUsuario) => `trazo_carrito_${idUsuario}`
 
 export const CartProvider = ({ children }) => {
-    const { usuario } = useAuth()
+    const { usuario, cargando: cargandoAuth } = useAuth()
     const [items, setItems] = useState([])
+    const [carritoCargadoPara, setCarritoCargadoPara] = useState(null)
 
     // Limpieza de una versión antigua del carrito (compartida entre usuarios)
     useEffect(() => {
         localStorage.removeItem('trazo_carrito')
     }, [])
 
-    // Cada vez que cambia el usuario (login/logout), carga SU carrito guardado
+    // Espera a que la sesión persistida se restaure antes de resolver el carrito.
     useEffect(() => {
-        if (!usuario) {
-            setItems([])
-            return
-        }
-        const guardado = localStorage.getItem(claveCarrito(usuario.id))
-        setItems(guardado ? JSON.parse(guardado) : [])
-    }, [usuario])
+        if (cargandoAuth) return
+
+        const timer = setTimeout(() => {
+            if (!usuario) {
+                setItems([])
+                setCarritoCargadoPara(null)
+                return
+            }
+
+            const guardado = localStorage.getItem(claveCarrito(usuario.id))
+            setItems(guardado ? JSON.parse(guardado) : [])
+            setCarritoCargadoPara(usuario.id)
+        }, 0)
+
+        return () => clearTimeout(timer)
+    }, [usuario, cargandoAuth])
 
     // Guarda el carrito, pero solo si hay una sesión activa
     useEffect(() => {
-        if (!usuario) return
+        if (!usuario || carritoCargadoPara !== usuario.id) return
         localStorage.setItem(claveCarrito(usuario.id), JSON.stringify(items))
-    }, [items, usuario])
+    }, [items, usuario, carritoCargadoPara])
 
     const agregarProducto = (producto, cantidad = 1) => {
         if (!usuario) return
