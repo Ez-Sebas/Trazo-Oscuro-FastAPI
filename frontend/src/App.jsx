@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Layout } from './components/Layout.jsx'
 import { AdminLayout } from './components/admin/AdminLayout.jsx'
 import { EmpleadoLayout } from './components/empleado/EmpleadoLayout.jsx'
+import { ClienteLayout } from './components/cliente/ClienteLayout.jsx'
 import { Index } from './pages/Index.jsx'
 import { QuienesSomos } from './pages/QuienesSomos.jsx'
 import { Reservas } from './pages/Reservas.jsx'
@@ -47,49 +48,23 @@ function App() {
                 <Route path="/servicios" element={<Servicios />} />
                 <Route path="/quienes-somos" element={<QuienesSomos />} />
                 <Route path="/reservas" element={<Reservas />} />
-                <Route
-                    path="/cliente"
-                    element={
-                        <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
-                            <ClientePanel />
-                        </ProtectedRoute>
-                    }
-                />
                 <Route path="/citas/confirmar" element={<ConfirmarCita />} />
-                <Route
-                    path="/cliente/citas"
-                    element={
-                        <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
-                            <ClienteCitasPage />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/cliente/compras"
-                    element={
-                        <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
-                            <ClienteComprasPage />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/cliente/facturas"
-                    element={
-                        <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
-                            <ClienteFacturasPage />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/cliente/pqr"
-                    element={
-                        <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
-                            <ClientePQRPage />
-                        </ProtectedRoute>
-                    }
-                />
                 <Route path="/checkout/exito" element={<CheckoutExito />} />
                 <Route path="/checkout/cancelado" element={<CheckoutCancelado />} />
+            </Route>
+
+            <Route
+                element={
+                    <ProtectedRoute rolesPermitidos={['Administrador', 'Empleado', 'Cliente']}>
+                        <ClienteLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="/cliente" element={<ClientePanel />} />
+                <Route path="/cliente/citas" element={<ClienteCitasPage />} />
+                <Route path="/cliente/compras" element={<ClienteComprasPage />} />
+                <Route path="/cliente/facturas" element={<ClienteFacturasPage />} />
+                <Route path="/cliente/pqr" element={<ClientePQRPage />} />
             </Route>
 
             <Route

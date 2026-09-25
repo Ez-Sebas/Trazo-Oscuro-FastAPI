@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { crearPQR, obtenerMisPQR, cerrarMiPQR } from '../services/pqrService.js'
-import { ClienteTabs } from '../components/ClienteTabs.jsx'
 import { Select } from '../components/ui/Select.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { Badge } from '../components/ui/Badge.jsx'
@@ -72,15 +71,12 @@ export const ClientePQRPage = () => {
     }
 
     return (
-        <div className="page-shell min-h-screen pt-28 pb-20 px-6">
-            <div className="page-content max-w-3xl mx-auto">
+        <div className="max-w-3xl">
                 <div className="mb-8 reveal-up">
                     <p className="eyebrow mb-3">Área personal</p>
                     <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mis solicitudes</h1>
                 <p className="text-texto-secundario text-sm mb-6">Registra y consulta tus peticiones, quejas y reclamos.</p>
                 </div>
-                <ClienteTabs />
-
                 <div className="flex justify-end mb-4">
                     <Button onClick={() => setMostrarForm(!mostrarForm)}>
                         {mostrarForm ? 'Cancelar' : 'Nueva solicitud'}
@@ -140,7 +136,6 @@ export const ClientePQRPage = () => {
                         ))}
                     </div>
                 )}
-            </div>
         </div>
     )
 }

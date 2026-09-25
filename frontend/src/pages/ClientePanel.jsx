@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { PerfilForm } from '../components/PerfilForm.jsx'
-import { ClienteTabs } from '../components/ClienteTabs.jsx'
 import { obtenerResumenCliente } from '../services/dashboardService.js'
 
 const CardIndicador = ({ titulo, valor, prefijo = '' }) => (
@@ -18,11 +17,12 @@ export const ClientePanel = () => {
     }, [])
 
     return (
-        <div className="bg-fondo min-h-screen pt-28 pb-20 px-6">
-            <div className="max-w-xl mx-auto">
-                <h1 className="text-texto font-serif text-3xl mb-2">Mi Cuenta</h1>
-                <p className="text-texto-secundario text-sm mb-6">Actualiza tu información personal cuando lo necesites.</p>
-                <ClienteTabs />
+        <div className="max-w-3xl">
+            <div className="reveal-up">
+                <p className="eyebrow mb-3">Área personal</p>
+                <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mi cuenta</h1>
+                <p className="text-texto-secundario text-sm mb-8">Actualiza tu información personal cuando lo necesites.</p>
+            </div>
                 {resumen && (
                     <div className="grid grid-cols-2 gap-3 mb-5">
                         <CardIndicador titulo="Compras realizadas" valor={resumen.total_compras} />
@@ -32,7 +32,6 @@ export const ClientePanel = () => {
                     </div>
                 )}
                 <PerfilForm />
-            </div>
         </div>
     )
 }

@@ -1,12 +1,47 @@
+import os
 from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import cm
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Flowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 NOMBRE_PROYECTO = "Trazo Oscuro - Estudio de Tatuajes"
+NIT_EMPRESA = os.getenv("EMPRESA_NIT", "No registrado")
+
+
+class LogoTrazoOscuro(Flowable):
+    """Marca vectorial para los documentos, sin depender de archivos estáticos."""
+
+    def __init__(self, ancho=1.6 * cm, alto=1.6 * cm):
+        super().__init__()
+        self.width = ancho
+        self.height = alto
+
+    def draw(self):
+        escala = min(self.width, self.height) / 60
+        canvas = self.canv
+        canvas.saveState()
+        # El SVG usa el eje Y hacia abajo, mientras ReportLab lo usa hacia
+        # arriba. Convertimos las coordenadas para conservar la orientación
+        # correcta de la "T" (barra arriba y trazo descendente).
+        ancho_trazo, alto_trazo = 40 * escala, 46 * escala
+        canvas.translate(
+            (self.width - ancho_trazo) / 2 - 10 * escala,
+            (self.height - alto_trazo) / 2 - (self.height - 58 * escala),
+        )
+        canvas.setStrokeColor(colors.HexColor("#1A1A1A"))
+        canvas.setLineWidth(6 * escala)
+        canvas.setLineCap(1)
+        canvas.setLineJoin(1)
+        y = lambda coordenada: self.height - coordenada * escala
+        canvas.line(10 * escala, y(15), 50 * escala, y(15))
+        canvas.line(30 * escala, y(15), 30 * escala, y(45))
+        canvas.line(30 * escala, y(45), 15 * escala, y(55))
+        canvas.setFillColor(colors.HexColor("#B91C1C"))
+        canvas.circle(15 * escala, y(55), 3 * escala, stroke=0, fill=1)
+        canvas.restoreState()
 
 
 def _estilos():
@@ -24,8 +59,16 @@ def generar_pdf_factura(factura: dict) -> bytes:
     styles = _estilos()
     elementos = []
 
+    marca = Table([[LogoTrazoOscuro(), Paragraph(
+        f"{NOMBRE_PROYECTO}<br/><font size=9 color='#334155'>NIT: {NIT_EMPRESA}</font>",
+        styles["TituloRojo"],
+    )]], colWidths=[2 * cm, 15.5 * cm])
+    marca.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+    elementos.append(marca)
+    elementos.append(Spacer(1, 8))
+
     encabezado = Table([
-        [Paragraph(NOMBRE_PROYECTO, styles["TituloRojo"]), Paragraph(f"FACTURA<br/><b>{factura['numero_factura']}</b>", styles["Heading2"])],
+        [Paragraph("Factura de venta", styles["TituloRojo"]), Paragraph(f"FACTURA<br/><b>{factura['numero_factura']}</b>", styles["Heading2"])],
         [Paragraph("Estudio de tatuajes · Medellín, Colombia", styles["Normal9"]), Paragraph(f"Fecha: {factura['fecha_generacion']}<br/>Estado: {factura['estado']}", styles["Normal9"])],
     ], colWidths=[10.5 * cm, 7 * cm])
     encabezado.setStyle(TableStyle([
@@ -90,13 +133,18 @@ def generar_pdf_factura(factura: dict) -> bytes:
     return buffer.getvalue()
 
 
-def generar_pdf_reporte_diario(fecha: str, ventas: list, total_general: float) -> bytes:
+def generar_pdf_reporte_diario(fecha: str, ventas: list, total_general: float, total_iva: float) -> bytes:
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), topMargin=1.5 * cm, bottomMargin=1.5 * cm)
     styles = _estilos()
     elementos = []
 
-    elementos.append(Paragraph(NOMBRE_PROYECTO, styles["TituloRojo"]))
+    marca = Table([[LogoTrazoOscuro(), Paragraph(
+        f"{NOMBRE_PROYECTO}<br/><font size=9 color='#334155'>NIT: {NIT_EMPRESA}</font>",
+        styles["TituloRojo"],
+    )]], colWidths=[2 * cm, 24 * cm])
+    marca.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+    elementos.append(marca)
     elementos.append(Paragraph("Reporte diario de ventas", styles["Heading2"]))
     elementos.append(Paragraph(f"Fecha consultada: {fecha}", styles["Normal9"]))
     elementos.append(Paragraph(f"Ventas incluidas: {len(ventas)}", styles["Normal9"]))
@@ -131,7 +179,20 @@ def generar_pdf_reporte_diario(fecha: str, ventas: list, total_general: float) -
     ]))
     elementos.append(tabla)
     elementos.append(Spacer(1, 16))
-    elementos.append(Paragraph(f"Total del día: ${total_general:,.0f}", styles["Heading3"]))
+    totales = Table([
+        ["IVA recaudado", f"${total_iva:,.0f}"],
+        ["Total del día", f"${total_general:,.0f}"],
+    ], colWidths=[4 * cm, 4 * cm], hAlign="RIGHT")
+    totales.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#FAFAF9")),
+        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+        ("TEXTCOLOR", (0, -1), (-1, -1), colors.HexColor("#B91C1C")),
+        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+        ("LINEABOVE", (0, -1), (-1, -1), 1, colors.HexColor("#B91C1C")),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    elementos.append(totales)
     elementos.append(Spacer(1, 10))
     elementos.append(Paragraph(
         f"Reporte generado el {datetime.now().strftime('%Y-%m-%d %H:%M')}.", styles["Normal9"]

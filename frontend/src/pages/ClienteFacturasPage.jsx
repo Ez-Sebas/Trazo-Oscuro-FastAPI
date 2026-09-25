@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { obtenerMisFacturas, descargarFacturaPdf } from '../services/facturaService.js'
 import { descargarBlob } from '../utils/descargarArchivo.js'
-import { ClienteTabs } from '../components/ClienteTabs.jsx'
 import { Icon } from '../components/ui/Icon.jsx'
 
 export const ClienteFacturasPage = () => {
@@ -34,13 +33,12 @@ export const ClienteFacturasPage = () => {
     }
 
     return (
-        <div className="page-shell min-h-screen pt-28 pb-20 px-6">
-            <div className="page-content max-w-3xl mx-auto">
+        <div className="max-w-3xl">
+            <div className="reveal-up">
                 <p className="eyebrow mb-3">Área personal</p>
                 <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mis facturas</h1>
                 <p className="text-texto-secundario text-sm mb-8">Consulta y descarga tus documentos de compra.</p>
-                <ClienteTabs />
-
+            </div>
                 {cargando ? (
                     <p className="text-texto-secundario text-sm">Cargando facturas...</p>
                 ) : error ? (
@@ -63,7 +61,6 @@ export const ClienteFacturasPage = () => {
                         ))}
                     </div>
                 )}
-            </div>
         </div>
     )
 }

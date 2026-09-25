@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { obtenerMisCitasCliente, cancelarMiCita } from '../services/citaService.js'
-import { ClienteTabs } from '../components/ClienteTabs.jsx'
 import { Icon } from '../components/ui/Icon.jsx'
 import { Badge, BadgePago } from '../components/ui/Badge.jsx'
 
@@ -36,15 +35,12 @@ export const ClienteCitasPage = () => {
     }
 
     return (
-        <div className="page-shell min-h-screen pt-28 pb-20 px-6">
-            <div className="page-content max-w-3xl mx-auto">
+        <div className="max-w-3xl">
                 <div className="mb-8 reveal-up">
                     <p className="eyebrow mb-3">Área personal</p>
-                    <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mi cuenta</h1>
+                    <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mis citas</h1>
                     <p className="text-texto-secundario text-sm">Consulta el estado y los próximos pasos de tus citas.</p>
                 </div>
-                <ClienteTabs />
-
                 {cargando ? (
                     <p className="text-texto-secundario text-sm">Cargando citas...</p>
                 ) : citas.length === 0 ? (
@@ -87,7 +83,6 @@ export const ClienteCitasPage = () => {
                         ))}
                     </div>
                 )}
-            </div>
         </div>
     )
 }

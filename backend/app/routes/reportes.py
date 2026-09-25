@@ -26,13 +26,15 @@ def _obtener_ventas_del_dia(fecha: date, db: Session):
         .all()
     )
 
-    resultado, total_general = [], 0.0
+    resultado, total_general, total_iva = [], 0.0, 0.0
     for v in ventas:
         total_general += float(v.total)
+        total_iva += float(v.iva)
         resultado.append({
             "id_venta": v.id_venta,
             "cliente_nombre": f"{v.cliente.nombres} {v.cliente.apellidos}",
             "total": float(v.total),
+            "iva": float(v.iva),
             "estado": v.estado,
             "detalles": [
                 {
@@ -42,24 +44,25 @@ def _obtener_ventas_del_dia(fecha: date, db: Session):
                 for d in v.detalles
             ],
         })
-    return resultado, total_general
+    return resultado, total_general, total_iva
 
 
 @router.get("/ventas-diarias", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
 def reporte_ventas_diarias(fecha: Optional[date] = Query(None), db: Session = Depends(get_db)):
     fecha_consulta = fecha or date.today()
-    ventas, total_general = _obtener_ventas_del_dia(fecha_consulta, db)
+    ventas, total_general, total_iva = _obtener_ventas_del_dia(fecha_consulta, db)
     return {
         "success": True, "fecha": fecha_consulta.isoformat(),
-        "ventas": ventas, "total_general": total_general, "cantidad_ventas": len(ventas),
+        "ventas": ventas, "total_general": total_general, "total_iva": total_iva,
+        "cantidad_ventas": len(ventas),
     }
 
 
 @router.get("/ventas-diarias/pdf", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
 def reporte_ventas_diarias_pdf(fecha: Optional[date] = Query(None), db: Session = Depends(get_db)):
     fecha_consulta = fecha or date.today()
-    ventas, total_general = _obtener_ventas_del_dia(fecha_consulta, db)
-    pdf_bytes = generar_pdf_reporte_diario(fecha_consulta.isoformat(), ventas, total_general)
+    ventas, total_general, total_iva = _obtener_ventas_del_dia(fecha_consulta, db)
+    pdf_bytes = generar_pdf_reporte_diario(fecha_consulta.isoformat(), ventas, total_general, total_iva)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
         headers={"Content-Disposition": f"inline; filename=reporte_ventas_{fecha_consulta.isoformat()}.pdf"},
@@ -69,8 +72,8 @@ def reporte_ventas_diarias_pdf(fecha: Optional[date] = Query(None), db: Session 
 @router.get("/ventas-diarias/excel", dependencies=[Depends(requerir_roles("Administrador", "Empleado"))])
 def reporte_ventas_diarias_excel(fecha: Optional[date] = Query(None), db: Session = Depends(get_db)):
     fecha_consulta = fecha or date.today()
-    ventas, total_general = _obtener_ventas_del_dia(fecha_consulta, db)
-    excel_bytes = generar_excel_reporte_diario(fecha_consulta.isoformat(), ventas, total_general)
+    ventas, total_general, total_iva = _obtener_ventas_del_dia(fecha_consulta, db)
+    excel_bytes = generar_excel_reporte_diario(fecha_consulta.isoformat(), ventas, total_general, total_iva)
     return Response(
         content=excel_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

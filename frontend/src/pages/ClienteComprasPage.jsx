@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { obtenerMisVentas } from '../services/ventaService.js'
-import { ClienteTabs } from '../components/ClienteTabs.jsx'
 import { Icon } from '../components/ui/Icon.jsx'
 import { Badge } from '../components/ui/Badge.jsx'
 
@@ -26,15 +25,12 @@ export const ClienteComprasPage = () => {
     }, [])
 
     return (
-        <div className="page-shell min-h-screen pt-28 pb-20 px-6">
-            <div className="page-content max-w-3xl mx-auto">
+        <div className="max-w-3xl">
                 <div className="mb-8 reveal-up">
                     <p className="eyebrow mb-3">Área personal</p>
                     <h1 className="editorial-title text-texto text-4xl sm:text-5xl mb-3">Mis compras</h1>
                     <p className="text-texto-secundario text-sm">Consulta el historial de tus pedidos y sus estados.</p>
                 </div>
-                <ClienteTabs />
-
                 {cargando && <p className="text-texto-secundario text-sm">Cargando compras...</p>}
                 {error && <p className="border border-borde bg-superficie p-5 text-texto-secundario text-sm">{error}</p>}
                 {!cargando && !error && ventas.length === 0 && (
@@ -69,7 +65,6 @@ export const ClienteComprasPage = () => {
                         ))}
                     </div>
                 )}
-            </div>
         </div>
     )
 }
