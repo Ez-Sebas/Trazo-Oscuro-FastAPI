@@ -257,8 +257,8 @@ python -m pytest -v
 ```
 
 Cubren el registro de usuarios, el control de duplicados, la validación de
-datos, el inicio de sesión (correcto y fallido) y el CRUD completo de usuarios
-con control de roles.
+datos, el inicio de sesión (correcto y fallido), el CRUD completo de usuarios
+con control de roles y la privacidad del historial del chatbot entre cuentas.
 
 ### Manuales con Postman
 
@@ -289,7 +289,7 @@ en `/docs` con sus etiquetas, descripciones y ejemplos.
 | Reportes | `/api/reportes` | Reporte diario de ventas en JSON, PDF y Excel, con total e IVA recaudado |
 | Dashboard | `/api/dashboard` | Indicadores y series para los gráficos, por rol |
 | PQR | `/api/pqr` | Registro, respuesta y seguimiento de solicitudes |
-| Chatbot | `/api/chat` | Conversación con IA, historial y diagnóstico |
+| Chatbot | `/api/chat` | Conversación con IA e historial privado por usuario; diagnóstico público |
 
 ---
 
@@ -358,6 +358,17 @@ El *system prompt* se construye dinámicamente en cada petición con los
 servicios y productos **activos** de la base de datos, de modo que el asistente
 nunca ofrece algo que ya no existe ni inventa precios.
 
+### Privacidad de las conversaciones
+
+El chat está disponible únicamente para usuarios que hayan iniciado sesión.
+Cada conversación se vincula al identificador de su propietario y los
+endpoints de envío e historial validan esa propiedad con el JWT. Por ello una
+cuenta no puede leer, continuar ni reutilizar la conversación de otra cuenta.
+
+En el navegador, el identificador de sesión del chat se almacena por usuario y
+el widget se desmonta al cerrar sesión; sin autenticación no se muestra ningún
+historial. Las conversaciones antiguas sin propietario tampoco se exponen.
+
 Para comprobar la configuración sin abrir el chat:
 
 ```bash
@@ -378,6 +389,7 @@ curl http://127.0.0.1:8000/api/chat/estado
 | Medida | Implementación |
 |---|---|
 | Autenticación | JWT firmado con `SECRET_KEY`, enviado como `Bearer` |
+| Chatbot | Historial vinculado a la cuenta autenticada y filtrado por propietario en la API |
 | Contraseñas | Hash con bcrypt y sal aleatoria; nunca se almacenan en claro |
 | Autorización | Dependencia `requerir_roles` sobre los endpoints sensibles |
 | Inyección SQL | Todas las consultas pasan por el ORM de SQLAlchemy, que parametriza los valores. No hay SQL construido por concatenación |

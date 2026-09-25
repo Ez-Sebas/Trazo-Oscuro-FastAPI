@@ -4,11 +4,12 @@ import { enviarMensajeChat, obtenerHistorialChat } from '../services/chatService
 import { useAuth } from '../context/AuthContext.jsx'
 import { Icon } from './ui/Icon.jsx'
 
-const obtenerSessionId = () => {
-    let id = localStorage.getItem('trazo_chat_session')
+const obtenerSessionId = (idUsuario) => {
+    const clave = `trazo_chat_session_${idUsuario}`
+    let id = localStorage.getItem(clave)
     if (!id) {
         id = crypto.randomUUID()
-        localStorage.setItem('trazo_chat_session', id)
+        localStorage.setItem(clave, id)
     }
     return id
 }
@@ -19,12 +20,20 @@ export const ChatWidget = () => {
     const [texto, setTexto] = useState('')
     const [enviando, setEnviando] = useState(false)
     const { usuario } = useAuth()
+    const idUsuario = usuario?.id
     const navigate = useNavigate()
     const finRef = useRef(null)
-    const sessionId = useRef(obtenerSessionId())
+    const sessionId = useRef(null)
 
     useEffect(() => {
-        if (abierto && mensajes.length === 0) {
+        sessionId.current = idUsuario ? obtenerSessionId(idUsuario) : null
+        setAbierto(false)
+        setMensajes([])
+        setTexto('')
+    }, [idUsuario])
+
+    useEffect(() => {
+        if (usuario && abierto && mensajes.length === 0 && sessionId.current) {
             obtenerHistorialChat(sessionId.current)
                 .then((data) => {
                     if (data.mensajes.length > 0) {
@@ -41,7 +50,7 @@ export const ChatWidget = () => {
                 })
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [abierto])
+    }, [abierto, usuario])
 
     useEffect(() => {
         finRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,6 +87,8 @@ export const ChatWidget = () => {
         setAbierto(false)
         navigate(usuario ? '/cliente/pqr' : '/login')
     }
+
+    if (!usuario) return null
 
     return (
         <>

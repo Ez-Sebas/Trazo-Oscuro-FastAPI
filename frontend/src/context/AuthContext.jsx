@@ -44,6 +44,8 @@ export const AuthProvider = ({ children }) => {
             token
         )
 
+        localStorage.removeItem('trazo_chat_session')
+
         setEstadoAuth({
             usuario,
             token,
@@ -64,6 +66,7 @@ export const AuthProvider = ({ children }) => {
 
         sessionStorage.removeItem('trazo_usuario')
         sessionStorage.removeItem('trazo_token')
+        localStorage.removeItem('trazo_chat_session')
     }
 
     const actualizarUsuario = (datosActualizados) => {

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Conversacion, Mensaje, Servicio, Producto, Usuario
 from ..schemas import MensajeChatCreate
-from ..auth import obtener_usuario_actual_opcional
+from ..auth import obtener_usuario_actual
 from ..ai_utils import ErrorIA, obtener_proveedores, obtener_respuesta_ia
 
 router = APIRouter(prefix="/api/chat", tags=["Chatbot"])
@@ -80,23 +80,23 @@ INSTRUCCIONES:
 @router.post("/mensaje")
 async def enviar_mensaje(
     datos: MensajeChatCreate,
-    usuario_actual: Usuario = Depends(obtener_usuario_actual_opcional),
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
     conversacion = db.query(Conversacion).filter(Conversacion.session_id == datos.session_id).first()
 
     if not conversacion:
         conversacion = Conversacion(
-            id_cliente=usuario_actual.id_usuario if usuario_actual else None,
+            id_cliente=usuario_actual.id_usuario,
             session_id=datos.session_id,
         )
         db.add(conversacion)
         db.commit()
         db.refresh(conversacion)
-    elif usuario_actual and conversacion.id_cliente is None:
+    elif conversacion.id_cliente != usuario_actual.id_usuario:
         # Si el visitante inició sesión a mitad de una conversación anónima,
         # la conversación queda vinculada a su cuenta desde ese momento.
-        conversacion.id_cliente = usuario_actual.id_usuario
+        raise HTTPException(status_code=404, detail="Conversación no encontrada.")
 
     db.add(Mensaje(
         id_conversacion=conversacion.id_conversacion, remitente="cliente", contenido=datos.mensaje.strip(),
@@ -147,8 +147,19 @@ async def enviar_mensaje(
 
 
 @router.get("/historial/{session_id}")
-def obtener_historial(session_id: str, db: Session = Depends(get_db)):
-    conversacion = db.query(Conversacion).filter(Conversacion.session_id == session_id).first()
+def obtener_historial(
+    session_id: str,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    conversacion = (
+        db.query(Conversacion)
+        .filter(
+            Conversacion.session_id == session_id,
+            Conversacion.id_cliente == usuario_actual.id_usuario,
+        )
+        .first()
+    )
     if not conversacion:
         return {"success": True, "mensajes": []}
 
