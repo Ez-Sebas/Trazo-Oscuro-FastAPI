@@ -6,6 +6,8 @@ dashboards por rol y un asistente virtual con Inteligencia Artificial.
 
 **Arquitectura:** React + Vite → FastAPI → PostgreSQL
 
+**Sitio desplegado:** [trazo-oscuro-fast-api.vercel.app](https://trazo-oscuro-fast-api.vercel.app/)
+
 | | |
 |---|---|
 | **Aprendiz** | Sebastián Zuleta Echavarría |
@@ -94,7 +96,7 @@ Trazo-Oscuro/
     │   ├── main.jsx           # Punto de entrada
     │   ├── App.jsx            # Definición de rutas
     │   ├── index.css          # Tokens de diseño y clases reutilizables
-    │   ├── components/        # Componentes reutilizables (ui/, admin/, empleado/)
+    │   ├── components/        # Componentes reutilizables (ui/, admin/, empleado/, cliente/)
     │   ├── pages/             # Páginas públicas, de cliente, admin y empleado
     │   ├── context/           # AuthContext y CartContext
     │   └── services/          # Cliente HTTP centralizado y servicios por módulo
@@ -200,8 +202,9 @@ que está excluido del repositorio mediante `.gitignore`.
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Vigencia del token en minutos |
 | `CORS_ORIGINS` | Orígenes autorizados, separados por coma |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Envío de correos |
-| `FRONTEND_URL` | URL del frontend, usada en los enlaces de los correos |
+| `FRONTEND_URL` | URL del frontend, usada en los enlaces de los correos. En producción: `https://trazo-oscuro-fast-api.vercel.app` |
 | `IVA_PORCENTAJE` | Porcentaje de impuesto aplicado a las ventas |
+| `EMPRESA_NIT` | NIT mostrado en las facturas y los reportes descargables |
 | `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET` | Pagos |
 | `GROQ_API_KEY` / `GROQ_MODEL` / `GROQ_BASE_URL` | Asistente virtual con IA |
 
@@ -282,8 +285,8 @@ en `/docs` con sus etiquetas, descripciones y ejemplos.
 | Servicios | `/api/servicios` | Catálogo y CRUD completo |
 | Citas | `/api/citas` | Reserva, confirmación por correo, estado y cobro |
 | Ventas | `/api/ventas` | Checkout con Stripe, mostrador e historial con filtros |
-| Facturas | `/api/facturas` | Generación, consulta, descarga en PDF y anulación |
-| Reportes | `/api/reportes` | Reporte diario de ventas en JSON, PDF y Excel |
+| Facturas | `/api/facturas` | Generación, consulta, descarga en PDF con logo y NIT, y anulación |
+| Reportes | `/api/reportes` | Reporte diario de ventas en JSON, PDF y Excel, con total e IVA recaudado |
 | Dashboard | `/api/dashboard` | Indicadores y series para los gráficos, por rol |
 | PQR | `/api/pqr` | Registro, respuesta y seguimiento de solicitudes |
 | Chatbot | `/api/chat` | Conversación con IA, historial y diagnóstico |
@@ -328,6 +331,13 @@ Cobro (independiente del estado):  pendiente  ⇄  pagada
 
 Los servicios se cobran presencialmente en el estudio, por eso `citas` tiene su
 propia columna `estado_pago` y no generan una fila en `ventas`.
+
+### Panel del cliente
+
+El cliente cuenta con un panel independiente y responsivo, con barra lateral en
+escritorio y menú desplegable en móvil. Desde allí puede administrar su perfil,
+citas, compras, facturas y solicitudes PQR. Las consultas siempre quedan
+limitadas a la información del usuario autenticado.
 
 ---
 
@@ -384,8 +394,9 @@ curl http://127.0.0.1:8000/api/chat/estado
 La guía completa está en [`backend/docs/DESPLIEGUE.md`](backend/docs/DESPLIEGUE.md).
 
 Resumen: la base de datos PostgreSQL y el backend FastAPI se publican en
-Railway, y el frontend en Vercel. Las variables de entorno se configuran en el
-panel de cada plataforma, nunca en el repositorio.
+Railway, y el frontend en Vercel: [trazo-oscuro-fast-api.vercel.app](https://trazo-oscuro-fast-api.vercel.app/).
+Las variables de entorno se configuran en el panel de cada plataforma, nunca en
+el repositorio. En el backend desplegado, `FRONTEND_URL` debe apuntar a esa URL.
 
 ---
 
