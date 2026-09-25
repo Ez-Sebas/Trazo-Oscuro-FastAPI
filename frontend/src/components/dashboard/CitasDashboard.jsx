@@ -17,10 +17,14 @@ const ESTADOS_CITA = ['pendiente', 'confirmada', 'realizada', 'cancelada']
  * así que a un empleado únicamente se le muestra si ya es el estado actual
  * (si no, el <select> no podría representarlo).
  */
-const estadosDisponibles = (estadoActual, esAdmin) =>
-    ESTADOS_CITA.filter((estado) =>
-        estado !== 'pendiente' &&
-        (estado !== 'confirmada' || esAdmin || estado === estadoActual))
+const estadosDisponibles = (estadoActual, esAdmin) => ({
+    pendiente: esAdmin ? ['pendiente', 'cancelada'] : [],
+    confirmada: ['confirmada', 'realizada', 'cancelada'],
+    realizada: ['realizada'],
+    cancelada: ['cancelada'],
+}[estadoActual] || [])
+const puedeGestionarPago = (cita) =>
+    ['confirmada', 'realizada'].includes(cita.estado) && cita.estado_pago !== 'pagada'
 
 const pesos = (valor) => `$${Number(valor || 0).toLocaleString('es-CO')}`
 
@@ -120,10 +124,9 @@ export const CitasDashboard = ({ esAdmin = false, onCambio }) => {
     }
 
     const alternarPago = async (cita) => {
-        const nuevoEstado = cita.estado_pago === 'pagada' ? 'pendiente' : 'pagada'
         setGuardandoId(cita.id_cita)
         try {
-            await actualizarPagoCita(cita.id_cita, nuevoEstado)
+            await actualizarPagoCita(cita.id_cita, 'pagada')
             await cargar(filtros)
             onCambio?.()
         } catch (err) {
@@ -345,8 +348,8 @@ export const CitasDashboard = ({ esAdmin = false, onCambio }) => {
                                         <td className="text-texto-secundario whitespace-nowrap">{cita.fecha} · {cita.hora}</td>
                                         <td className="text-texto whitespace-nowrap">{pesos(cita.servicio_precio)}</td>
                                         <td>
-                                            {cita.estado === 'pendiente' ? (
-                                                <Badge estado="pendiente" texto="Espera al cliente" />
+                                            {estadosDisponibles(cita.estado, esAdmin).length < 2 ? (
+                                                <Badge estado={cita.estado} texto={cita.estado === 'pendiente' ? 'Espera al cliente' : undefined} />
                                             ) : (
                                                 <select
                                                     value={cita.estado}
@@ -362,15 +365,15 @@ export const CitasDashboard = ({ esAdmin = false, onCambio }) => {
                                             )}
                                         </td>
                                         <td>
-                                            <button
+                                            {puedeGestionarPago(cita) ? <button
                                                 type="button"
                                                 onClick={() => alternarPago(cita)}
-                                                disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
-                                                aria-label={`Marcar la cita ${cita.id_cita} como ${cita.estado_pago === 'pagada' ? 'por cobrar' : 'pagada'}`}
+                                                disabled={guardandoId === cita.id_cita}
+                                                aria-label={`Marcar la cita ${cita.id_cita} como pagada`}
                                                 className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 <BadgePago estadoPago={cita.estado_pago} />
-                                            </button>
+                                            </button> : cita.estado !== 'cancelada' && <BadgePago estadoPago={cita.estado_pago} />}
                                         </td>
                                     </tr>
                                 ))}
@@ -411,9 +414,9 @@ export const CitasDashboard = ({ esAdmin = false, onCambio }) => {
                                     </div>
                                 </div>
 
-                                {cita.estado === 'pendiente' ? (
+                                {estadosDisponibles(cita.estado, esAdmin).length < 2 ? (
                                     <p className="text-texto-secundario text-xs border-l-2 border-acento pl-3">
-                                        Esperando que el cliente confirme desde el correo.
+                                        {cita.estado === 'pendiente' ? 'Esperando que el cliente confirme desde el correo.' : 'Esta cita ya está cerrada.'}
                                     </p>
                                 ) : (
                                     <label className="block">
@@ -431,15 +434,15 @@ export const CitasDashboard = ({ esAdmin = false, onCambio }) => {
                                     </label>
                                 )}
 
-                                <button
+                                {puedeGestionarPago(cita) ? <button
                                     type="button"
                                     onClick={() => alternarPago(cita)}
-                                    disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
+                                    disabled={guardandoId === cita.id_cita}
                                     className="w-full flex items-center justify-center gap-2 border border-borde rounded-lg py-2.5 text-xs text-texto-secundario hover:border-acento hover:text-acento transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <Icon nombre="check" size={14} />
-                                    {cita.estado_pago === 'pagada' ? 'Marcar como por cobrar' : 'Marcar como pagada'}
-                                </button>
+                                    Marcar como pagada
+                                </button> : cita.estado !== 'cancelada' && <BadgePago estadoPago={cita.estado_pago} />}
                             </article>
                         ))}
                     </div>

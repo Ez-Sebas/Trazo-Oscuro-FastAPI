@@ -71,7 +71,7 @@ export const ClienteCitasPage = () => {
                                 {c.estado !== 'pendiente' && c.estado !== 'cancelada' && c.estado_pago !== 'pagada' && (
                                     <p className="text-texto-secundario text-xs mt-4 border-l-2 border-borde pl-3">El pago del servicio se realiza en el estudio el día de tu cita.</p>
                                 )}
-                                {(c.estado === 'pendiente' || c.estado === 'confirmada') && (
+                                {c.estado === 'pendiente' && c.estado_pago !== 'pagada' && (
                                     <button
                                         onClick={() => cancelar(c.id_cita)}
                                         className="inline-flex items-center gap-2 text-texto-secundario text-sm mt-4 hover:text-acento-suave transition-colors cursor-pointer"

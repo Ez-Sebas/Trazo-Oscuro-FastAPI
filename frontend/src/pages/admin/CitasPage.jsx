@@ -8,6 +8,14 @@ import { Badge, BadgePago } from '../../components/ui/Badge.jsx'
 import { Icon } from '../../components/ui/Icon.jsx'
 
 const ESTADOS_CITA = ['pendiente', 'confirmada', 'realizada', 'cancelada']
+const estadosDisponibles = (estadoActual) => ({
+    pendiente: ['pendiente', 'cancelada'],
+    confirmada: ['confirmada', 'realizada', 'cancelada'],
+    realizada: ['realizada'],
+    cancelada: ['cancelada'],
+}[estadoActual] || [])
+const puedeGestionarPago = (cita) =>
+    ['confirmada', 'realizada'].includes(cita.estado) && cita.estado_pago !== 'pagada'
 
 const pesos = (valor) => `$${Number(valor || 0).toLocaleString('es-CO')}`
 
@@ -208,19 +216,19 @@ export const CitasPage = () => {
                                                 aria-label={`Estado de la cita ${cita.id_cita}`}
                                                 className="admin-select px-2 py-1 text-texto text-xs"
                                             >
-                                                {ESTADOS_CITA.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
+                                                {estadosDisponibles(cita.estado).map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                                             </select>
                                         </td>
                                         <td>
-                                            <button
+                                            {puedeGestionarPago(cita) ? <button
                                                 type="button"
                                                 onClick={() => alternarPago(cita)}
-                                                disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
+                                                disabled={guardandoId === cita.id_cita}
                                                 aria-label={`Marcar la cita ${cita.id_cita} como ${cita.estado_pago === 'pagada' ? 'por cobrar' : 'pagada'}`}
                                                 className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 <BadgePago estadoPago={cita.estado_pago} />
-                                            </button>
+                                            </button> : <BadgePago estadoPago={cita.estado_pago} />}
                                         </td>
                                     </tr>
                                 ))}
@@ -242,7 +250,7 @@ export const CitasPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                         <Badge estado={cita.estado} />
-                                        <BadgePago estadoPago={cita.estado_pago} />
+                                        {cita.estado !== 'cancelada' && <BadgePago estadoPago={cita.estado_pago} />}
                                     </div>
                                 </div>
 
@@ -293,19 +301,19 @@ export const CitasPage = () => {
                                         onChange={(e) => cambiarEstado(cita.id_cita, e.target.value)}
                                         className="field field-select"
                                     >
-                                        {ESTADOS_CITA.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
+                                        {estadosDisponibles(cita.estado).map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                                     </select>
                                 </label>
 
-                                <button
+                                {puedeGestionarPago(cita) ? <button
                                     type="button"
                                     onClick={() => alternarPago(cita)}
-                                    disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
+                                    disabled={guardandoId === cita.id_cita}
                                     className="w-full flex items-center justify-center gap-2 border border-borde rounded-lg py-2.5 text-xs text-texto-secundario hover:border-acento hover:text-acento transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <Icon nombre="check" size={14} />
-                                    {cita.estado_pago === 'pagada' ? 'Marcar como por cobrar' : 'Marcar como pagada'}
-                                </button>
+                                    Marcar como pagada
+                                </button> : cita.estado !== 'cancelada' && <BadgePago estadoPago={cita.estado_pago} />}
                             </article>
                         ))}
                     </div>

@@ -5,11 +5,13 @@ import { Badge, BadgePago } from '../../components/ui/Badge.jsx'
 import { Icon } from '../../components/ui/Icon.jsx'
 
 const ESTADOS_EDITABLES = ['confirmada', 'realizada', 'cancelada']
-
-// Un empleado no puede confirmar una cita: eso lo hace el cliente desde el
-// enlace del correo. La opción solo aparece si ya es el estado actual.
-const estadosDisponibles = (estadoActual) =>
-    ESTADOS_EDITABLES.filter((estado) => estado !== 'confirmada' || estado === estadoActual)
+const estadosDisponibles = (estadoActual) => ({
+    confirmada: ['confirmada', 'realizada', 'cancelada'],
+    realizada: ['realizada'],
+    cancelada: ['cancelada'],
+}[estadoActual] || [])
+const puedeGestionarPago = (cita) =>
+    ['confirmada', 'realizada'].includes(cita.estado) && cita.estado_pago !== 'pagada'
 
 const pesos = (valor) => `$${Number(valor || 0).toLocaleString('es-CO')}`
 
@@ -151,7 +153,7 @@ export const MisCitasPage = () => {
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                     <Badge estado={cita.estado} />
-                                    <BadgePago estadoPago={cita.estado_pago} />
+                                    {cita.estado !== 'cancelada' && <BadgePago estadoPago={cita.estado_pago} />}
                                 </div>
                             </div>
 
@@ -183,7 +185,7 @@ export const MisCitasPage = () => {
                                 <p className="text-texto-secundario text-xs border-l-2 border-acento pl-3">
                                     Esperando que el cliente confirme la cita desde su correo.
                                 </p>
-                            ) : (
+                            ) : cita.estado === 'confirmada' ? (
                                 <div className="grid gap-3 sm:grid-cols-2 border-t border-borde/70 pt-4">
                                     <label className="block">
                                         <span className="field-label">Estado de la cita</span>
@@ -199,20 +201,27 @@ export const MisCitasPage = () => {
                                         </select>
                                     </label>
 
-                                    <div>
+                                    {puedeGestionarPago(cita) && <div>
                                         <span className="field-label">Cobro del servicio</span>
                                         <button
                                             type="button"
                                             onClick={() => alternarPago(cita)}
-                                            disabled={guardandoId === cita.id_cita || cita.estado === 'cancelada'}
+                                            disabled={guardandoId === cita.id_cita}
                                             className="w-full flex items-center justify-center gap-2 border border-borde rounded-lg py-2.5 text-xs text-texto-secundario hover:border-acento hover:text-acento transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <Icon nombre="check" size={14} />
-                                            {cita.estado_pago === 'pagada' ? 'Marcar como por cobrar' : 'Marcar como pagada'}
+                                            Marcar como pagada
                                         </button>
-                                    </div>
+                                    </div>}
                                 </div>
-                            )}
+                            ) : cita.estado === 'realizada' && puedeGestionarPago(cita) ? (
+                                <div className="border-t border-borde/70 pt-4">
+                                    <span className="field-label">Cobro del servicio</span>
+                                    <button type="button" onClick={() => alternarPago(cita)} disabled={guardandoId === cita.id_cita} className="w-full flex items-center justify-center gap-2 border border-borde rounded-lg py-2.5 text-xs text-texto-secundario hover:border-acento hover:text-acento transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
+                                        <Icon nombre="check" size={14} /> Marcar como pagada
+                                    </button>
+                                </div>
+                            ) : null}
                         </article>
                     ))}
                 </div>

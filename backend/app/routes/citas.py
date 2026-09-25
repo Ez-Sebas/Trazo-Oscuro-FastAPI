@@ -151,8 +151,12 @@ def cancelar_mi_cita(id_cita: Annotated[int, Path(ge=1, description="Identificad
         raise HTTPException(status_code=404, detail="Cita no encontrada.")
     if cita.id_cliente != usuario_actual.id_usuario:
         raise HTTPException(status_code=403, detail="Esta cita no te pertenece.")
-    if cita.estado not in ("pendiente", "confirmada"):
-        raise HTTPException(status_code=400, detail=f"No es posible cancelar una cita en estado '{cita.estado}'.")
+    # La confirmación del correo es el compromiso final del cliente. Desde
+    # ese momento cualquier novedad debe gestionarla el estudio, no el cliente.
+    if cita.estado != "pendiente":
+        raise HTTPException(status_code=400, detail="Solo puedes cancelar una cita que aún está pendiente de confirmación.")
+    if cita.estado_pago == "pagada":
+        raise HTTPException(status_code=400, detail="No puedes cancelar una cita que ya fue pagada.")
     if cita.fecha < date.today():
         raise HTTPException(status_code=400, detail="No es posible cancelar una cita que ya pasó.")
 
@@ -233,17 +237,33 @@ def cambiar_estado_cita(
 ):
     cita = _obtener_cita_gestionable(id_cita, usuario_actual, db)
 
-    if datos.estado == "confirmada" and usuario_actual.rol.nombre != "Administrador":
+    if datos.estado == "confirmada":
         raise HTTPException(
-            status_code=403,
-            detail="Solo el cliente puede confirmar su cita mediante el enlace enviado por correo.",
+            status_code=400,
+            detail="La cita solo puede confirmarse mediante el enlace enviado al correo del cliente.",
+        )
+
+    transiciones_permitidas = {
+        "pendiente": {"cancelada"},
+        "confirmada": {"realizada", "cancelada"},
+        "realizada": set(),
+        "cancelada": set(),
+    }
+    if datos.estado not in transiciones_permitidas[cita.estado]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No es posible cambiar una cita de '{cita.estado}' a '{datos.estado}'.",
+        )
+
+    # Una cancelación con dinero ya recibido requiere un proceso de reembolso;
+    # no se debe ocultar ni perder ese registro cambiando estados manualmente.
+    if datos.estado == "cancelada" and cita.estado_pago == "pagada":
+        raise HTTPException(
+            status_code=400,
+            detail="No puedes cancelar una cita pagada. Gestiona primero el reembolso con el administrador.",
         )
 
     cita.estado = datos.estado
-
-    # Una cita cancelada no puede quedar marcada como cobrada.
-    if datos.estado == "cancelada":
-        cita.estado_pago = "pendiente"
 
     db.commit()
     return {
@@ -267,10 +287,15 @@ def cambiar_estado_pago_cita(
     """
     cita = _obtener_cita_gestionable(id_cita, usuario_actual, db)
 
-    if cita.estado == "cancelada" and datos.estado_pago == "pagada":
+    if cita.estado not in ("confirmada", "realizada"):
         raise HTTPException(
             status_code=400,
-            detail="No puedes registrar el pago de una cita cancelada.",
+            detail="Solo puedes registrar el pago de una cita confirmada o realizada.",
+        )
+    if cita.estado_pago == "pagada" and datos.estado_pago == "pendiente":
+        raise HTTPException(
+            status_code=400,
+            detail="Una cita pagada no puede volver a estar pendiente de pago.",
         )
 
     cita.estado_pago = datos.estado_pago
@@ -278,5 +303,4 @@ def cambiar_estado_pago_cita(
 
     texto = "pagada" if datos.estado_pago == "pagada" else "pendiente de pago"
     return {"success": True, "message": f"Cita marcada como {texto}.", "estado_pago": cita.estado_pago}
-
 
